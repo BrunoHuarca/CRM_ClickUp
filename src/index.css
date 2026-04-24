@@ -1,32 +1,58 @@
 @import "tailwindcss";
+@custom-variant dark (&:is(.dark *));
 
 @theme {
   --font-sans: 'Inter', ui-sans-serif, system-ui, sans-serif;
-  --color-primary-50: #eff6ff;
-  --color-primary-100: #dbeafe;
-  --color-primary-200: #bfdbfe;
-  --color-primary-300: #93c5fd;
-  --color-primary-400: #60a5fa;
-  --color-primary-500: #3b82f6;
-  --color-primary-600: #2563eb;
-  --color-primary-700: #1d4ed8;
-  --color-primary-800: #1e40af;
-  --color-primary-900: #1e3a8a;
-  --color-primary-950: #172554;
-  --color-surface-50: #f8fafc;
-  --color-surface-100: #f1f5f9;
-  --color-surface-200: #e2e8f0;
-  --color-surface-300: #cbd5e1;
-  --color-surface-400: #94a3b8;
-  --color-surface-500: #64748b;
-  --color-surface-600: #475569;
-  --color-surface-700: #334155;
-  --color-surface-800: #1e293b;
-  --color-surface-900: #0f172a;
-  --color-surface-950: #020617;
-  --color-success: #10b981;
+  --color-primary-50: #e6f6f6;
+  --color-primary-100: #cceded;
+  --color-primary-200: #99dbdb;
+  --color-primary-300: #66caca;
+  --color-primary-400: #33b8b8;
+  --color-primary-500: #279896; /* Secundario */
+  --color-primary-600: #047D7D; /* Principal */
+  --color-primary-700: #036868;
+  --color-primary-800: #025252;
+  --color-primary-900: #023d3d;
+  --color-primary-950: #011f1f;
+  
+  --color-surface-50: #fbfbfb;
+  --color-surface-100: #f6f6f6;
+  --color-surface-200: #e8e8e8;
+  --color-surface-300: #d6d6d6;
+  --color-surface-400: #b0b0b0;
+  --color-surface-500: #8c8c8c;
+  --color-surface-600: #696969;
+  --color-surface-700: #575657;
+  --color-surface-800: #4A494A; /* Texto/Neutro */
+  --color-surface-900: #141414; /* Fondo/Oscuro */
+  --color-surface-950: #0a0a0a;
+  
+  --color-success: #44DE88; /* Éxito/Acción */
   --color-warning: #f59e0b;
   --color-danger: #ef4444;
+}
+
+.dark {
+  --color-surface-50: #121212;
+  --color-surface-100: #1a1a1a;
+  --color-surface-200: #262626;
+  --color-surface-300: #404040;
+  --color-surface-400: #525252;
+  --color-surface-500: #737373;
+  --color-surface-600: #a3a3a3;
+  --color-surface-700: #d4d4d4;
+  --color-surface-800: #e5e5e5;
+  --color-surface-900: #ffffff;
+  --color-surface-950: #ffffff;
+}
+
+.dark .bg-white {
+  background-color: var(--color-surface-50) !important;
+  color: var(--color-surface-800);
+}
+
+.dark .text-surface-800 {
+  color: var(--color-surface-800);
 }
 
 * {

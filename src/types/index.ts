@@ -30,7 +30,7 @@ export type CategoriaCosto =
 
 export type TipoNotificacion = 'alerta' | 'info' | 'campana_pausada';
 
-export type RolUsuario = 'Admin' | 'Comercial' | 'Call Center' | 'Legal';
+export type RolUsuario = string;
 
 export interface Usuario {
   id: string;
@@ -45,6 +45,8 @@ export interface Actividad {
   id: string;
   tipo: TipoActividad;
   fecha: string;
+  horaInicio?: string;
+  horaFin?: string;
   responsable: string;
   resultado: string;
 }
@@ -74,6 +76,8 @@ export interface Folio {
   responsable: string;
   score: ScoreFolio;
   direccion?: string;
+  latitud?: number;
+  longitud?: number;
   precio?: number;
   fechaCreacion: string;
   actividades: Actividad[];
@@ -90,7 +94,7 @@ export interface ColumnaKanban {
   iconColor: string;
 }
 
-export type VistaActiva = 'kanban' | 'dashboard' | 'agentes' | 'usuarios';
+export type VistaActiva = 'kanban' | 'dashboard' | 'agentes' | 'usuarios' | 'agenda';
 
 export interface FiltrosGlobales {
   fechaInicio: string;

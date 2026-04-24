@@ -1,10 +1,11 @@
 import { type FC } from 'react';
 import { useUsuarioActual } from '../hooks/usePermisos';
-import { ROLES_CONFIG } from '../constants';
+import { useUsuarioStore } from '../store/useUsuarioStore';
 
 const AccesoRestringido: FC<{ mensaje?: string }> = ({ mensaje }) => {
   const usuario = useUsuarioActual();
-  const rolConfig = usuario ? ROLES_CONFIG[usuario.rol] : null;
+  const rolesConfig = useUsuarioStore((s) => s.rolesConfig);
+  const rolConfig = usuario ? rolesConfig[usuario.rol] : null;
 
   return (
     <div className="flex-1 flex items-center justify-center p-6 animate-fade-in">

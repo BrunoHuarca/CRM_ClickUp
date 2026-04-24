@@ -290,16 +290,52 @@ const TimelineTab: FC<TimelineTabProps> = ({
   const [formVisible, setFormVisible] = useState(false);
   const [tipo, setTipo] = useState<TipoActividad>('Llamada');
   const [fecha, setFecha] = useState(new Date().toISOString().split('T')[0]);
+  const [horaInicio, setHoraInicio] = useState('');
+  const [horaFin, setHoraFin] = useState('');
   const [responsable, setResponsable] = useState('');
   const [resultado, setResultado] = useState('');
+  const [error, setError] = useState('');
 
   const handleSubmit = (e: FormEvent) => {
     e.preventDefault();
     if (!responsable.trim() || !resultado.trim()) return;
+    setError('');
+
+    if (tipo === 'Visita') {
+      if (!horaInicio || !horaFin) {
+        setError('Debes ingresar hora de inicio y fin para la visita');
+        return;
+      }
+      if (horaInicio >= horaFin) {
+        setError('La hora de inicio debe ser menor a la hora de fin');
+        return;
+      }
+
+      // Validación de Cruce
+      const allFolios = useFolioStore.getState().folios;
+      const tFecha = new Date(fecha).toISOString().split('T')[0];
+      
+      const hasOverlap = allFolios.some(f => 
+        f.actividades.some(a => 
+          a.tipo === 'Visita' &&
+          a.responsable === responsable.trim() &&
+          a.fecha.split('T')[0] === tFecha &&
+          a.horaInicio && a.horaFin &&
+          !(horaFin <= a.horaInicio || horaInicio >= a.horaFin)
+        )
+      );
+
+      if (hasOverlap) {
+        setError('Conflicto de horario: El agente ya tiene una actividad programada en ese rango');
+        return;
+      }
+    }
 
     agregarActividad(folioId, {
       tipo,
       fecha: new Date(fecha).toISOString(),
+      horaInicio: tipo === 'Visita' ? horaInicio : undefined,
+      horaFin: tipo === 'Visita' ? horaFin : undefined,
       responsable: responsable.trim(),
       resultado: resultado.trim(),
     });
@@ -309,6 +345,8 @@ const TimelineTab: FC<TimelineTabProps> = ({
     setResultado('');
     setTipo('Llamada');
     setFecha(new Date().toISOString().split('T')[0]);
+    setHoraInicio('');
+    setHoraFin('');
   };
 
   return (
@@ -337,7 +375,10 @@ const TimelineTab: FC<TimelineTabProps> = ({
               </label>
               <select
                 value={tipo}
-                onChange={(e) => setTipo(e.target.value as TipoActividad)}
+                onChange={(e) => {
+                  setTipo(e.target.value as TipoActividad);
+                  setError('');
+                }}
                 className="w-full px-2.5 py-2 bg-white border border-surface-200 rounded-lg text-xs focus:outline-none focus:ring-2 focus:ring-primary-500"
               >
                 {TIPOS_ACTIVIDAD.map((t) => (
@@ -357,6 +398,34 @@ const TimelineTab: FC<TimelineTabProps> = ({
               />
             </div>
           </div>
+          {tipo === 'Visita' && (
+            <div className="grid grid-cols-2 gap-3">
+              <div>
+                <label className="block text-[10px] font-semibold text-surface-500 uppercase tracking-wider mb-1">
+                  Hora de inicio *
+                </label>
+                <input
+                  type="time"
+                  value={horaInicio}
+                  onChange={(e) => setHoraInicio(e.target.value)}
+                  required
+                  className="w-full px-2.5 py-2 bg-white border border-surface-200 rounded-lg text-xs focus:outline-none focus:ring-2 focus:ring-primary-500"
+                />
+              </div>
+              <div>
+                <label className="block text-[10px] font-semibold text-surface-500 uppercase tracking-wider mb-1">
+                  Hora de fin *
+                </label>
+                <input
+                  type="time"
+                  value={horaFin}
+                  onChange={(e) => setHoraFin(e.target.value)}
+                  required
+                  className="w-full px-2.5 py-2 bg-white border border-surface-200 rounded-lg text-xs focus:outline-none focus:ring-2 focus:ring-primary-500"
+                />
+              </div>
+            </div>
+          )}
           <div>
             <label className="block text-[10px] font-semibold text-surface-500 uppercase tracking-wider mb-1">
               Responsable *
@@ -383,6 +452,11 @@ const TimelineTab: FC<TimelineTabProps> = ({
               className="w-full px-2.5 py-2 bg-white border border-surface-200 rounded-lg text-xs focus:outline-none focus:ring-2 focus:ring-primary-500 placeholder:text-surface-400 resize-none"
             />
           </div>
+          {error && (
+            <div className="text-xs font-semibold text-red-600 bg-red-50 p-2 rounded-lg border border-red-200 text-center animate-shake">
+              {error}
+            </div>
+          )}
           <button
             type="submit"
             className="w-full bg-primary-500 hover:bg-primary-600 text-white py-2 rounded-lg text-xs font-semibold transition-smooth cursor-pointer"
@@ -423,6 +497,11 @@ const TimelineTab: FC<TimelineTabProps> = ({
                           month: 'short',
                           year: 'numeric',
                         })}
+                        {actividad.horaInicio && actividad.horaFin && (
+                          <span className="ml-1.5 font-medium bg-surface-100 px-1.5 py-0.5 rounded border border-surface-200">
+                            {actividad.horaInicio} - {actividad.horaFin}
+                          </span>
+                        )}
                       </span>
                       <button
                         onClick={() => eliminarActividad(folioId, actividad.id)}

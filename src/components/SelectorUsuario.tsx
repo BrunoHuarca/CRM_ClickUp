@@ -1,9 +1,10 @@
 import { type FC, useState, useRef, useEffect } from 'react';
 import { useUsuarioStore } from '../store/useUsuarioStore';
-import { ROLES_CONFIG, AVATAR_GRADIENTS } from '../constants';
+import { AVATAR_GRADIENTS } from '../constants';
 
 const SelectorUsuario: FC = () => {
   const usuarios = useUsuarioStore((s) => s.usuarios);
+  const rolesConfig = useUsuarioStore((s) => s.rolesConfig);
   const usuarioActualId = useUsuarioStore((s) => s.usuarioActualId);
   const setUsuarioActual = useUsuarioStore((s) => s.setUsuarioActual);
   const [abierto, setAbierto] = useState(false);
@@ -24,7 +25,7 @@ const SelectorUsuario: FC = () => {
   if (!usuarioActual) return null;
 
   const gradient = AVATAR_GRADIENTS[usuarioActual.color] || AVATAR_GRADIENTS.purple;
-  const rolConfig = ROLES_CONFIG[usuarioActual.rol];
+  const rolConfig = rolesConfig[usuarioActual.rol];
 
   return (
     <div ref={ref} className="relative">
@@ -53,7 +54,7 @@ const SelectorUsuario: FC = () => {
             {usuarios.filter((u) => u.activo).map((usuario) => {
               const isActive = usuario.id === usuarioActualId;
               const grad = AVATAR_GRADIENTS[usuario.color] || AVATAR_GRADIENTS.purple;
-              const rc = ROLES_CONFIG[usuario.rol];
+              const rc = rolesConfig[usuario.rol];
 
               return (
                 <button

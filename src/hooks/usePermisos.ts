@@ -1,18 +1,15 @@
 import { useMemo } from 'react';
 import { useUsuarioStore } from '../store/useUsuarioStore';
-import { PERMISOS_POR_ROL, type Permisos } from '../constants';
-
-const DEFAULT_PERMISOS: Permisos = PERMISOS_POR_ROL['Admin'];
+import { type Permisos } from '../constants';
 
 export function usePermisos(): Permisos {
   const usuarios = useUsuarioStore((s) => s.usuarios);
   const usuarioActualId = useUsuarioStore((s) => s.usuarioActualId);
+  const getPermisos = useUsuarioStore((s) => s.getPermisos);
 
   return useMemo(() => {
-    const usuario = usuarios.find((u) => u.id === usuarioActualId);
-    if (!usuario) return DEFAULT_PERMISOS;
-    return PERMISOS_POR_ROL[usuario.rol] || DEFAULT_PERMISOS;
-  }, [usuarios, usuarioActualId]);
+    return getPermisos();
+  }, [usuarios, usuarioActualId, getPermisos]);
 }
 
 export function useUsuarioActual() {

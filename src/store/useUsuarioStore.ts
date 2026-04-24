@@ -2,10 +2,19 @@ import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 import { v4 as uuidv4 } from 'uuid';
 import type { Usuario } from '../types';
-import { PERMISOS_POR_ROL, type Permisos } from '../constants';
+import { ROLES_CONFIG as DEFAULT_ROLES_CONFIG, PERMISOS_POR_ROL as DEFAULT_PERMISOS_POR_ROL, type Permisos } from '../constants';
+
+export interface RolConfig {
+  label: string;
+  color: string;
+  bgColor: string;
+  borderColor: string;
+}
 
 interface UsuarioStore {
   usuarios: Usuario[];
+  rolesConfig: Record<string, RolConfig>;
+  permisosRoles: Record<string, Permisos>;
   usuarioActualId: string | null;
   initialized: boolean;
 
@@ -15,15 +24,20 @@ interface UsuarioStore {
   setUsuarioActual: (id: string) => void;
   getUsuarioActual: () => Usuario | null;
   getPermisos: () => Permisos;
+  
+  // Roles Management
+  guardarRol: (nombreRol: string, config: RolConfig, permisos: Permisos) => void;
+  eliminarRol: (nombreRol: string) => void;
+  
   inicializar: () => void;
 }
 
 const usuariosEjemplo: Usuario[] = [
   {
     id: 'user-001',
-    nombre: 'Bruno Martínez',
+    nombre: 'Bruno Huarca',
     rol: 'Admin',
-    avatar: 'BM',
+    avatar: 'BH',
     color: 'purple',
     activo: true,
   },
@@ -61,16 +75,20 @@ const usuariosEjemplo: Usuario[] = [
   },
 ];
 
-const DEFAULT_PERMISOS: Permisos = PERMISOS_POR_ROL['Admin'];
+const DEFAULT_PERMISOS: Permisos = DEFAULT_PERMISOS_POR_ROL['Admin'];
 
 export const useUsuarioStore = create<UsuarioStore>()(
   persist(
     (set, get) => ({
       usuarios: [],
+      rolesConfig: DEFAULT_ROLES_CONFIG,
+      permisosRoles: DEFAULT_PERMISOS_POR_ROL,
       usuarioActualId: null,
       initialized: false,
 
-      agregarUsuario: (data) =>
+      agregarUsuario: (data) => {
+        const currentUser = get().getUsuarioActual();
+        if (currentUser?.rol !== 'Admin') return;
         set((state) => ({
           usuarios: [
             ...state.usuarios,
@@ -80,13 +98,17 @@ export const useUsuarioStore = create<UsuarioStore>()(
               activo: true,
             },
           ],
-        })),
+        }));
+      },
 
-      eliminarUsuario: (id) =>
+      eliminarUsuario: (id) => {
+        const currentUser = get().getUsuarioActual();
+        if (currentUser?.rol !== 'Admin') return;
         set((state) => ({
           usuarios: state.usuarios.filter((u) => u.id !== id),
           usuarioActualId: state.usuarioActualId === id ? state.usuarios[0]?.id || null : state.usuarioActualId,
-        })),
+        }));
+      },
 
       setUsuarioActual: (id) => set({ usuarioActualId: id }),
 
@@ -97,8 +119,30 @@ export const useUsuarioStore = create<UsuarioStore>()(
 
       getPermisos: () => {
         const usuario = get().getUsuarioActual();
+        const permisosRoles = get().permisosRoles;
         if (!usuario) return DEFAULT_PERMISOS;
-        return PERMISOS_POR_ROL[usuario.rol] || DEFAULT_PERMISOS;
+        return permisosRoles[usuario.rol] || DEFAULT_PERMISOS;
+      },
+
+      guardarRol: (nombreRol, config, permisos) => {
+        const currentUser = get().getUsuarioActual();
+        if (currentUser?.rol !== 'Admin') return;
+        set((state) => ({
+          rolesConfig: { ...state.rolesConfig, [nombreRol]: config },
+          permisosRoles: { ...state.permisosRoles, [nombreRol]: permisos },
+        }));
+      },
+
+      eliminarRol: (nombreRol) => {
+        const currentUser = get().getUsuarioActual();
+        if (currentUser?.rol !== 'Admin') return;
+        set((state) => {
+          const newRolesConfig = { ...state.rolesConfig };
+          const newPermisosRoles = { ...state.permisosRoles };
+          delete newRolesConfig[nombreRol];
+          delete newPermisosRoles[nombreRol];
+          return { rolesConfig: newRolesConfig, permisosRoles: newPermisosRoles };
+        });
       },
 
       inicializar: () => {
@@ -106,6 +150,8 @@ export const useUsuarioStore = create<UsuarioStore>()(
         if (!initialized || usuarios.length === 0) {
           set({
             usuarios: usuariosEjemplo,
+            rolesConfig: DEFAULT_ROLES_CONFIG,
+            permisosRoles: DEFAULT_PERMISOS_POR_ROL,
             usuarioActualId: 'user-001', // Admin by default
             initialized: true,
           });

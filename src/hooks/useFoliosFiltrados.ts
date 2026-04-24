@@ -1,12 +1,24 @@
 import { useMemo } from 'react';
 import { useFolioStore } from '../store/useFolioStore';
+import { useUsuarioStore } from '../store/useUsuarioStore';
 
 export const useFoliosFiltrados = () => {
   const folios = useFolioStore((s) => s.folios);
   const filtros = useFolioStore((s) => s.filtros);
+  const usuarios = useUsuarioStore((s) => s.usuarios);
+  const usuarioActualId = useUsuarioStore((s) => s.usuarioActualId);
+
+  const usuarioActual = useMemo(() => 
+    usuarios.find(u => u.id === usuarioActualId) || null,
+  [usuarios, usuarioActualId]);
 
   return useMemo(() => {
     return folios.filter((folio) => {
+      // 0. Filtrar por Rol (Seguridad)
+      if (usuarioActual && usuarioActual.rol === 'Comercial') {
+        if (folio.responsable !== usuarioActual.nombre) return false;
+      }
+
       // 1. Filtrar por Responsable
       if (filtros.responsableId !== 'Todos') {
         if (folio.responsable !== filtros.responsableId) return false;
@@ -34,5 +46,5 @@ export const useFoliosFiltrados = () => {
 
       return true;
     });
-  }, [folios, filtros]);
+  }, [folios, filtros, usuarioActual]);
 };

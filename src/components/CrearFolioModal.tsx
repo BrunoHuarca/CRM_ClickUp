@@ -19,6 +19,8 @@ const CrearFolioModal: FC = () => {
   const [estado, setEstado] = useState<EstadoFolio>('captacion');
   const [direccion, setDireccion] = useState('');
   const [precio, setPrecio] = useState('');
+  const [latitud, setLatitud] = useState('');
+  const [longitud, setLongitud] = useState('');
 
   const resetForm = () => {
     setTipoInmueble('Casa');
@@ -28,6 +30,8 @@ const CrearFolioModal: FC = () => {
     setEstado('captacion');
     setDireccion('');
     setPrecio('');
+    setLatitud('');
+    setLongitud('');
   };
 
   const handleSubmit = (e: FormEvent) => {
@@ -45,6 +49,8 @@ const CrearFolioModal: FC = () => {
       score,
       direccion: direccion.trim() || undefined,
       precio: precio ? Number(precio) : undefined,
+      latitud: latitud ? Number(latitud) : undefined,
+      longitud: longitud ? Number(longitud) : undefined,
     });
 
     resetForm();
@@ -210,20 +216,53 @@ const CrearFolioModal: FC = () => {
             />
           </div>
 
-          {/* Precio */}
-          <div>
-            <label className="block text-xs font-semibold text-surface-600 mb-1.5 uppercase tracking-wider">
-              Precio (PEN)
-            </label>
-            <input
-              id="input-precio"
-              type="number"
-              value={precio}
-              onChange={(e) => setPrecio(e.target.value)}
-              placeholder="0"
-              min="0"
-              className="w-full px-3 py-2.5 bg-surface-50 border border-surface-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-smooth placeholder:text-surface-400"
-            />
+          <div className="grid grid-cols-2 gap-4">
+            {/* Precio */}
+            <div>
+              <label className="block text-xs font-semibold text-surface-600 mb-1.5 uppercase tracking-wider">
+                Precio (PEN)
+              </label>
+              <input
+                id="input-precio"
+                type="number"
+                value={precio}
+                onChange={(e) => setPrecio(e.target.value)}
+                placeholder="0"
+                min="0"
+                className="w-full px-3 py-2.5 bg-surface-50 border border-surface-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-smooth placeholder:text-surface-400"
+              />
+            </div>
+            {/* GPS coordinates */}
+            <div className="flex gap-2">
+              <div className="flex-1">
+                <label className="block text-xs font-semibold text-surface-600 mb-1.5 uppercase tracking-wider">
+                  Latitud
+                </label>
+                <input
+                  id="input-latitud"
+                  type="number"
+                  step="any"
+                  value={latitud}
+                  onChange={(e) => setLatitud(e.target.value)}
+                  placeholder="-12.04"
+                  className="w-full px-3 py-2.5 bg-surface-50 border border-surface-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-smooth placeholder:text-surface-400"
+                />
+              </div>
+              <div className="flex-1">
+                <label className="block text-xs font-semibold text-surface-600 mb-1.5 uppercase tracking-wider">
+                  Longitud
+                </label>
+                <input
+                  id="input-longitud"
+                  type="number"
+                  step="any"
+                  value={longitud}
+                  onChange={(e) => setLongitud(e.target.value)}
+                  placeholder="-77.04"
+                  className="w-full px-3 py-2.5 bg-surface-50 border border-surface-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-smooth placeholder:text-surface-400"
+                />
+              </div>
+            </div>
           </div>
 
           {/* Actions */}

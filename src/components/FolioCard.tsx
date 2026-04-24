@@ -1,41 +1,20 @@
-import { type FC, type MouseEvent, useMemo } from 'react';
-import { useSortable } from '@dnd-kit/sortable';
-import { CSS } from '@dnd-kit/utilities';
+import { type FC, type MouseEvent, useMemo, useState } from 'react';
 import type { Folio } from '../types';
-import { SCORE_CONFIG, AVATAR_GRADIENTS } from '../constants';
+import { SCORE_CONFIG, AVATAR_GRADIENTS, COLUMNAS_KANBAN } from '../constants';
 import { useFolioStore } from '../store/useFolioStore';
 import { useUsuarioStore } from '../store/useUsuarioStore';
 import { useAlertasFolio } from '../hooks/useAlertasFolio';
+import MapModal from './MapModal';
 
 interface FolioCardProps {
   folio: Folio;
-  isDragOverlay?: boolean;
 }
 
-const FolioCard: FC<FolioCardProps> = ({ folio, isDragOverlay }) => {
-  const {
-    attributes,
-    listeners,
-    setNodeRef,
-    transform,
-    transition,
-    isDragging,
-  } = useSortable({
-    id: folio.id,
-    data: {
-      type: 'folio',
-      folio,
-    },
-  });
-
+const FolioCard: FC<FolioCardProps> = ({ folio }) => {
   const abrirDetalle = useFolioStore((s) => s.abrirDetalle);
+  const moverFolio = useFolioStore((s) => s.moverFolio);
   const alertas = useAlertasFolio(folio);
-
-  const style = {
-    transform: CSS.Transform.toString(transform),
-    transition,
-    opacity: isDragging ? 0.4 : 1,
-  };
+  const [mapVisible, setMapVisible] = useState(false);
 
   const scoreConfig = SCORE_CONFIG[folio.score];
 
@@ -56,43 +35,24 @@ const FolioCard: FC<FolioCardProps> = ({ folio, isDragOverlay }) => {
   };
 
   const handleClick = (e: MouseEvent) => {
-    // Don't open detail when dragging
-    if (isDragging) return;
-    // Prevent opening if it was a drag gesture (moved more than 5px, handled by sensor)
     e.stopPropagation();
     abrirDetalle(folio.id);
   };
 
+  const currentColumnIndex = COLUMNAS_KANBAN.findIndex(c => c.id === folio.estado);
+  const prevColumn = currentColumnIndex > 0 ? COLUMNAS_KANBAN[currentColumnIndex - 1] : null;
+  const nextColumn = currentColumnIndex < COLUMNAS_KANBAN.length - 1 ? COLUMNAS_KANBAN[currentColumnIndex + 1] : null;
+
   const totalCostos = (folio.costos || []).reduce((sum, c) => sum + c.monto, 0);
   const numActividades = (folio.actividades || []).length;
-
-  if (isDragOverlay) {
-    return (
-      <div className="bg-white rounded-xl p-4 shadow-2xl border border-primary-200 rotate-2 w-72">
-        <CardContent
-          folio={folio}
-          scoreConfig={scoreConfig}
-          formatPrice={formatPrice}
-          formatDate={formatDate}
-          alertas={[]}
-          totalCostos={totalCostos}
-          numActividades={numActividades}
-        />
-      </div>
-    );
-  }
 
   const isCerrado = folio.estado === 'cerrado';
   const campanaPausada = folio.campanaPausada && isCerrado;
 
   return (
     <div
-      ref={setNodeRef}
-      style={style}
-      {...attributes}
-      {...listeners}
       onClick={handleClick}
-      className={`rounded-xl p-4 shadow-sm border hover:shadow-md transition-smooth cursor-grab active:cursor-grabbing group animate-slide-in relative ${
+      className={`rounded-xl p-4 shadow-sm border hover:shadow-md transition-smooth cursor-pointer animate-slide-in relative ${
         campanaPausada
           ? 'bg-surface-50 border-surface-300 opacity-80'
           : alertas.length > 0
@@ -137,7 +97,48 @@ const FolioCard: FC<FolioCardProps> = ({ folio, isDragOverlay }) => {
         alertas={alertas}
         totalCostos={totalCostos}
         numActividades={numActividades}
+        onOpenMap={(e) => {
+          e.stopPropagation();
+          setMapVisible(true);
+        }}
       />
+
+      {/* State Machine Buttons */}
+      {!campanaPausada && (
+        <div className="mt-3 flex gap-2">
+          {prevColumn && (
+            <button
+              onClick={(e) => {
+                e.stopPropagation();
+                moverFolio(folio.id, prevColumn.id);
+              }}
+              className="flex-1 py-1.5 px-2 bg-surface-100 hover:bg-surface-200 text-surface-600 rounded-lg text-xs font-semibold border border-surface-200 transition-smooth"
+            >
+              ← {prevColumn.titulo}
+            </button>
+          )}
+          {nextColumn && (
+            <button
+              onClick={(e) => {
+                e.stopPropagation();
+                moverFolio(folio.id, nextColumn.id);
+              }}
+              className="flex-1 py-1.5 px-2 bg-[#44DE88] hover:bg-[#3bcc79] text-surface-900 rounded-lg text-xs font-bold transition-smooth shadow-sm"
+            >
+              Avanzar →
+            </button>
+          )}
+        </div>
+      )}
+
+      {mapVisible && folio.latitud && folio.longitud && (
+        <MapModal
+          latitud={folio.latitud}
+          longitud={folio.longitud}
+          propietario={folio.propietario}
+          onClose={() => setMapVisible(false)}
+        />
+      )}
     </div>
   );
 };
@@ -150,6 +151,7 @@ interface CardContentProps {
   alertas: { tipo: string; mensaje: string }[];
   totalCostos: number;
   numActividades: number;
+  onOpenMap: (e: MouseEvent) => void;
 }
 
 const CardContent: FC<CardContentProps> = ({
@@ -160,6 +162,7 @@ const CardContent: FC<CardContentProps> = ({
   alertas,
   totalCostos,
   numActividades,
+  onOpenMap,
 }) => (
   <>
     {/* Header */}
@@ -229,12 +232,20 @@ const CardContent: FC<CardContentProps> = ({
     {/* Footer */}
     <AvatarFooter responsable={folio.responsable} fecha={folio.fechaCreacion} formatDate={formatDate} />
 
-    {/* Owner */}
-    <div className="mt-2">
+    {/* Owner & Map Action */}
+    <div className="mt-2 flex items-center justify-between">
       <p className="text-[11px] text-surface-400">
         <span className="font-medium text-surface-500">Propietario:</span>{' '}
         {folio.propietario}
       </p>
+      {folio.latitud !== undefined && folio.longitud !== undefined && (
+        <button
+          onClick={onOpenMap}
+          className="text-[10px] text-primary-600 hover:text-primary-700 font-semibold flex items-center gap-1 transition-smooth"
+        >
+          📍 Ver ubicación
+        </button>
+      )}
     </div>
   </>
 );

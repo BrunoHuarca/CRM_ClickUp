@@ -149,7 +149,7 @@ export interface Permisos {
 
 export const PERMISOS_POR_ROL: Record<string, Permisos> = {
   Admin: {
-    vistas: ['kanban', 'dashboard', 'agentes', 'usuarios'],
+    vistas: ['kanban', 'dashboard', 'agentes', 'usuarios', 'agenda'],
     etapasVisibles: ['captacion', 'legal', 'marketing', 'venta', 'cerrado'],
     puedeCrearFolio: true,
     puedeMoverFolio: true,
@@ -158,7 +158,7 @@ export const PERMISOS_POR_ROL: Record<string, Permisos> = {
     puedeVerRentabilidad: true,
   },
   Comercial: {
-    vistas: ['kanban', 'dashboard', 'agentes'],
+    vistas: ['kanban', 'dashboard', 'agentes', 'agenda', 'usuarios'],
     etapasVisibles: ['captacion', 'legal', 'marketing', 'venta', 'cerrado'],
     puedeCrearFolio: true,
     puedeMoverFolio: true,
@@ -167,7 +167,7 @@ export const PERMISOS_POR_ROL: Record<string, Permisos> = {
     puedeVerRentabilidad: false,
   },
   'Call Center': {
-    vistas: ['kanban'],
+    vistas: ['kanban', 'agenda', 'usuarios'],
     etapasVisibles: ['captacion'],
     puedeCrearFolio: true,
     puedeMoverFolio: false,
@@ -176,7 +176,7 @@ export const PERMISOS_POR_ROL: Record<string, Permisos> = {
     puedeVerRentabilidad: false,
   },
   Legal: {
-    vistas: ['kanban'],
+    vistas: ['kanban', 'usuarios'],
     etapasVisibles: ['legal'],
     puedeCrearFolio: false,
     puedeMoverFolio: false,
