@@ -38,7 +38,7 @@ const Sidebar: FC = () => {
       {/* Logo */}
       <div className="p-6 border-b border-zinc-700/50">
         <div className="flex items-center justify-center transition-opacity duration-300">
-          <img src={modoOscuro ? "/propify2.png" : "/propify1.png"} alt="Propify Logo" className="h-10 w-auto" />
+          <img src={modoOscuro ? "/propify2.png" : "/propify2.png"} alt="Propify Logo" className="h-10 w-auto" />
         </div>
       </div>
 
