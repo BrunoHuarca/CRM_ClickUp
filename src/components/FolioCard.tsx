@@ -1,6 +1,6 @@
 import { type FC, type MouseEvent, useMemo, useState } from 'react';
 import type { Folio } from '../types';
-import { SCORE_CONFIG, AVATAR_GRADIENTS, COLUMNAS_KANBAN } from '../constants';
+import { SCORE_CONFIG, AVATAR_GRADIENTS } from '../constants';
 import { useFolioStore } from '../store/useFolioStore';
 import { useUsuarioStore } from '../store/useUsuarioStore';
 import { useAlertasFolio } from '../hooks/useAlertasFolio';
@@ -12,7 +12,6 @@ interface FolioCardProps {
 
 const FolioCard: FC<FolioCardProps> = ({ folio }) => {
   const abrirDetalle = useFolioStore((s) => s.abrirDetalle);
-  const moverFolio = useFolioStore((s) => s.moverFolio);
   const alertas = useAlertasFolio(folio);
   const [mapVisible, setMapVisible] = useState(false);
 
@@ -20,9 +19,9 @@ const FolioCard: FC<FolioCardProps> = ({ folio }) => {
 
   const formatPrice = (precio?: number) => {
     if (!precio) return null;
-    return new Intl.NumberFormat('es-PE', {
+    return new Intl.NumberFormat('en-US', {
       style: 'currency',
-      currency: 'PEN',
+      currency: 'USD',
       maximumFractionDigits: 0,
     }).format(precio);
   };
@@ -39,14 +38,12 @@ const FolioCard: FC<FolioCardProps> = ({ folio }) => {
     abrirDetalle(folio.id);
   };
 
-  const currentColumnIndex = COLUMNAS_KANBAN.findIndex(c => c.id === folio.estado);
-  const prevColumn = currentColumnIndex > 0 ? COLUMNAS_KANBAN[currentColumnIndex - 1] : null;
-  const nextColumn = currentColumnIndex < COLUMNAS_KANBAN.length - 1 ? COLUMNAS_KANBAN[currentColumnIndex + 1] : null;
+
 
   const totalCostos = (folio.costos || []).reduce((sum, c) => sum + c.monto, 0);
   const numActividades = (folio.actividades || []).length;
 
-  const isCerrado = folio.estado === 'cerrado';
+  const isCerrado = folio.estado === 'Publicado';
   const campanaPausada = folio.campanaPausada && isCerrado;
 
   return (
@@ -103,39 +100,13 @@ const FolioCard: FC<FolioCardProps> = ({ folio }) => {
         }}
       />
 
-      {/* State Machine Buttons */}
-      {!campanaPausada && (
-        <div className="mt-3 flex gap-2">
-          {prevColumn && (
-            <button
-              onClick={(e) => {
-                e.stopPropagation();
-                moverFolio(folio.id, prevColumn.id);
-              }}
-              className="flex-1 py-1.5 px-2 bg-surface-100 hover:bg-surface-200 text-surface-600 rounded-lg text-xs font-semibold border border-surface-200 transition-smooth"
-            >
-              ← {prevColumn.titulo}
-            </button>
-          )}
-          {nextColumn && (
-            <button
-              onClick={(e) => {
-                e.stopPropagation();
-                moverFolio(folio.id, nextColumn.id);
-              }}
-              className="flex-1 py-1.5 px-2 bg-[#44DE88] hover:bg-[#3bcc79] text-surface-900 rounded-lg text-xs font-bold transition-smooth shadow-sm"
-            >
-              Avanzar →
-            </button>
-          )}
-        </div>
-      )}
+
 
       {mapVisible && folio.latitud && folio.longitud && (
         <MapModal
           latitud={folio.latitud}
           longitud={folio.longitud}
-          propietario={folio.propietario}
+          propietario={folio.propietarioNombre}
           onClose={() => setMapVisible(false)}
         />
       )}
@@ -204,9 +175,9 @@ const CardContent: FC<CardContentProps> = ({
     </div>
 
     {/* Price */}
-    {folio.precio && (
+    {folio.precioEsperado && (
       <p className="text-lg font-bold text-surface-800 mb-2">
-        {formatPrice(folio.precio)}
+        {formatPrice(folio.precioEsperado)}
       </p>
     )}
 
@@ -224,7 +195,7 @@ const CardContent: FC<CardContentProps> = ({
       </span>
       {totalCostos > 0 && (
         <span className="text-[10px] text-surface-400 bg-surface-50 px-1.5 py-0.5 rounded">
-          💸 {new Intl.NumberFormat('es-PE', { style: 'currency', currency: 'PEN', maximumFractionDigits: 0 }).format(totalCostos)}
+          💸 {new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD', maximumFractionDigits: 0 }).format(totalCostos)}
         </span>
       )}
     </div>
@@ -236,7 +207,7 @@ const CardContent: FC<CardContentProps> = ({
     <div className="mt-2 flex items-center justify-between">
       <p className="text-[11px] text-surface-400">
         <span className="font-medium text-surface-500">Propietario:</span>{' '}
-        {folio.propietario}
+        {folio.propietarioNombre}
       </p>
       {folio.latitud !== undefined && folio.longitud !== undefined && (
         <button

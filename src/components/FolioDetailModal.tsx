@@ -40,12 +40,12 @@ const FolioDetailModal: FC = () => {
   ];
 
   const totalCostos = folio.costos.reduce((sum, c) => sum + c.monto, 0);
-  const utilidad = (folio.precio || 0) - totalCostos;
+  const utilidad = (folio.precioEsperado || 0) - totalCostos;
 
   const formatCurrency = (val: number) =>
-    new Intl.NumberFormat('es-PE', {
+    new Intl.NumberFormat('en-US', {
       style: 'currency',
-      currency: 'PEN',
+      currency: 'USD',
       maximumFractionDigits: 0,
     }).format(val);
 
@@ -81,7 +81,7 @@ const FolioDetailModal: FC = () => {
                 )}
               </div>
               <h2 className="text-lg font-bold text-white">
-                {folio.tipoInmueble} — {folio.propietario}
+                {folio.tipoInmueble} — {folio.propietarioNombre}
               </h2>
               <p className="text-surface-400 text-xs mt-1 font-mono">
                 ID: {folio.id.slice(0, 12)}... • Creado {new Date(folio.fechaCreacion).toLocaleDateString('es-PE')}
@@ -152,7 +152,7 @@ const FolioDetailModal: FC = () => {
               eliminarCosto={eliminarCosto}
               formatCurrency={formatCurrency}
               totalCostos={totalCostos}
-              precioVenta={folio.precio || 0}
+              precioVenta={folio.precioEsperado || 0}
               utilidad={utilidad}
               canDeleteCost={permisos.puedeEliminarCosto}
             />
@@ -195,12 +195,38 @@ const DetalleTab: FC<DetalleTabProps> = ({ folio, formatCurrency, totalCostos, u
         </div>
       )}
 
-      {/* Info Grid */}
-      <div className="grid grid-cols-2 gap-4">
-        <InfoItem label="Tipo de Inmueble" value={folio.tipoInmueble} icon="🏠" />
-        <InfoItem label="Propietario" value={folio.propietario} icon="👤" />
-        <InfoItem label="Responsable" value={folio.responsable} icon="👔" />
-        <InfoItem label="Dirección" value={folio.direccion || 'Sin especificar'} icon="📍" />
+      {/* Info Sections */}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        
+        {/* Datos del Inmueble */}
+        <div className="space-y-3">
+          <h4 className="text-sm font-semibold text-surface-700 flex items-center gap-2">
+            <span>🏠</span> Datos del Inmueble
+          </h4>
+          <div className="grid grid-cols-2 gap-3">
+            <InfoItem label="Tipo" value={folio.tipoInmueble} />
+            <InfoItem label="Metraje" value={`${folio.metraje || 0} m²`} />
+            <InfoItem label="Antigüedad" value={folio.antiguedad ? String(folio.antiguedad) : '—'} />
+            <InfoItem label="Partida Reg." value={folio.partidaRegistral || '—'} />
+            <InfoItem label="Ubicación" value={[folio.distrito, folio.provincia].filter(Boolean).join(', ') || '—'} />
+            <InfoItem label="Urgencia Venta" value={folio.urgenciaVenta || '—'} />
+          </div>
+        </div>
+
+        {/* Datos del Propietario */}
+        <div className="space-y-3">
+          <h4 className="text-sm font-semibold text-surface-700 flex items-center gap-2">
+            <span>👤</span> Datos del Propietario
+          </h4>
+          <div className="grid grid-cols-2 gap-3">
+            <InfoItem label="Nombre" value={folio.propietarioNombre || '—'} />
+            <InfoItem label="DNI / RUC" value={folio.propietarioDni || '—'} />
+            <InfoItem label="Contacto" value={folio.propietarioContacto || '—'} />
+            <InfoItem label="Cant. Propietarios" value={String(folio.cantidadPropietarios || 1)} />
+            <InfoItem label="Origen" value={folio.origen || '—'} />
+            <InfoItem label="Disposición" value={folio.nivelDisposicion || '—'} />
+          </div>
+        </div>
       </div>
 
       {/* Financial Summary */}
@@ -208,10 +234,15 @@ const DetalleTab: FC<DetalleTabProps> = ({ folio, formatCurrency, totalCostos, u
         <h4 className="text-sm font-semibold text-surface-700 mb-4">Resumen Financiero</h4>
         <div className="grid grid-cols-3 gap-4">
           <div className="text-center">
-            <p className="text-xs text-surface-500 mb-1">Precio Venta</p>
+            <p className="text-xs text-surface-500 mb-1">Precio Esperado</p>
             <p className="text-lg font-bold text-surface-800">
-              {folio.precio ? formatCurrency(folio.precio) : '—'}
+              {folio.precioEsperado ? formatCurrency(folio.precioEsperado) : '—'}
             </p>
+            {folio.precioSugerido && folio.precioSugerido > 0 && (
+              <p className="text-[10px] text-surface-400 mt-1">
+                Sug: {formatCurrency(folio.precioSugerido)}
+              </p>
+            )}
           </div>
           <div className="text-center">
             <p className="text-xs text-surface-500 mb-1">Total Costos</p>
@@ -226,16 +257,16 @@ const DetalleTab: FC<DetalleTabProps> = ({ folio, formatCurrency, totalCostos, u
             </p>
           </div>
         </div>
-        {folio.precio && folio.precio > 0 && (
+        {folio.precioEsperado && folio.precioEsperado > 0 && (
           <div className="mt-4">
             <div className="flex justify-between text-xs text-surface-500 mb-1">
               <span>Margen</span>
-              <span>{Math.round((utilidad / folio.precio) * 100)}%</span>
+              <span>{Math.round((utilidad / folio.precioEsperado) * 100)}%</span>
             </div>
             <div className="w-full bg-surface-200 rounded-full h-2">
               <div
                 className={`h-2 rounded-full transition-all duration-500 ${utilidad >= 0 ? 'bg-emerald-500' : 'bg-red-500'}`}
-                style={{ width: `${Math.min(Math.max(((folio.precio - totalCostos) / folio.precio) * 100, 0), 100)}%` }}
+                style={{ width: `${Math.min(Math.max(((folio.precioEsperado - totalCostos) / folio.precioEsperado) * 100, 0), 100)}%` }}
               ></div>
             </div>
           </div>
@@ -263,13 +294,13 @@ const DetalleTab: FC<DetalleTabProps> = ({ folio, formatCurrency, totalCostos, u
   );
 };
 
-const InfoItem: FC<{ label: string; value: string; icon: string }> = ({ label, value, icon }) => (
+const InfoItem: FC<{ label: string; value: string; icon?: string }> = ({ label, value, icon }) => (
   <div className="bg-white border border-surface-200 rounded-xl p-3">
     <div className="flex items-center gap-1.5 mb-1">
-      <span className="text-sm">{icon}</span>
+      {icon && <span className="text-sm">{icon}</span>}
       <span className="text-[10px] font-semibold text-surface-400 uppercase tracking-wider">{label}</span>
     </div>
-    <p className="text-sm font-medium text-surface-700 truncate">{value}</p>
+    <p className="text-sm font-medium text-surface-700 truncate" title={value}>{value}</p>
   </div>
 );
 

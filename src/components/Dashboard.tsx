@@ -21,11 +21,12 @@ import type { EstadoFolio, ScoreFolio } from '../types';
 import { exportarAExcel } from '../utils/export';
 
 const ETAPA_COLORS: Record<EstadoFolio, string> = {
-  captacion: '#3b82f6',
-  legal: '#f59e0b',
-  marketing: '#8b5cf6',
-  venta: '#10b981',
-  cerrado: '#64748b',
+  Captación: '#3b82f6',
+  Comercial: '#f59e0b',
+  Legal: '#f59e0b',
+  Gerencia: '#10b981',
+  Marketing: '#8b5cf6',
+  Publicado: '#64748b',
 };
 
 const SCORE_COLORS: Record<ScoreFolio, string> = {
@@ -58,13 +59,13 @@ const Dashboard: FC = () => {
   // Profitability data per folio
   const dataRentabilidad = useMemo(() => {
     return folios
-      .filter((f) => f.precio && f.precio > 0)
+      .filter((f) => f.precioEsperado && f.precioEsperado > 0)
       .map((f) => {
         const totalCostos = (f.costos || []).reduce((sum, c) => sum + c.monto, 0);
-        const utilidad = (f.precio || 0) - totalCostos;
+        const utilidad = (f.precioEsperado || 0) - totalCostos;
         return {
-          name: `${f.tipoInmueble.substring(0, 4)}. ${f.propietario.split(' ')[0]}`,
-          ingreso: f.precio || 0,
+          name: `${f.tipoInmueble.substring(0, 4)}. ${f.propietarioNombre.split(' ')[0]}`,
+          ingreso: f.precioEsperado || 0,
           costos: totalCostos,
           utilidad,
           folioId: f.id,
@@ -73,9 +74,9 @@ const Dashboard: FC = () => {
   }, [folios]);
 
   const totalFolios = folios.length;
-  const foliosActivos = folios.filter((f) => f.estado !== 'cerrado').length;
-  const foliosCerrados = folios.filter((f) => f.estado === 'cerrado').length;
-  const valorTotal = folios.reduce((sum, f) => sum + (f.precio || 0), 0);
+  const foliosActivos = folios.filter((f) => f.estado !== 'Publicado').length;
+  const foliosCerrados = folios.filter((f) => f.estado === 'Publicado').length;
+  const valorTotal = folios.reduce((sum, f) => sum + (f.precioEsperado || 0), 0);
   const costosTotales = folios.reduce(
     (sum, f) => sum + (f.costos || []).reduce((s, c) => s + c.monto, 0),
     0
@@ -85,7 +86,7 @@ const Dashboard: FC = () => {
 
   // OKRs Variables
   const OKR_CONTACTO_OBJETIVO = 0.90; // 90% of non-closed folios should have at least 1 activity in < 24h
-  const foliosParaAcercamiento = folios.filter(f => f.estado !== 'cerrado');
+  const foliosParaAcercamiento = folios.filter(f => f.estado !== 'Publicado');
   const foliosAtendidosATiempo = foliosParaAcercamiento.filter(f => {
     if (f.actividades.length === 0) return false;
     const primeraActividad = new Date(f.actividades[f.actividades.length - 1].fecha);
@@ -102,9 +103,9 @@ const Dashboard: FC = () => {
   const progresoMargen = Math.min(1, margenGlobal / OKR_MARGEN_OBJETIVO);
 
   const formatCurrency = (val: number) =>
-    new Intl.NumberFormat('es-PE', {
+    new Intl.NumberFormat('en-US', {
       style: 'currency',
-      currency: 'PEN',
+      currency: 'USD',
       maximumFractionDigits: 0,
     }).format(val);
 
@@ -366,11 +367,11 @@ const Dashboard: FC = () => {
 
             {/* Margin per folio cards */}
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mb-6">
-              {folios.filter((f) => f.precio && f.precio > 0).map((f) => {
+              {folios.filter((f) => f.precioEsperado && f.precioEsperado > 0).map((f) => {
                 const tc = (f.costos || []).reduce((s, c) => s + c.monto, 0);
-                const margen = (f.precio || 0) - tc;
-                const margenPct = f.precio ? (margen / f.precio) * 100 : 0;
-                const isCerrado = f.estado === 'cerrado';
+                const margen = (f.precioEsperado || 0) - tc;
+                const margenPct = f.precioEsperado ? (margen / f.precioEsperado) * 100 : 0;
+                const isCerrado = f.estado === 'Publicado';
 
                 return (
                   <div key={f.id} className={`bg-white rounded-2xl border p-4 hover:shadow-md transition-smooth animate-slide-in ${isCerrado ? 'border-emerald-200' : 'border-surface-200'}`}>
@@ -379,7 +380,7 @@ const Dashboard: FC = () => {
                         <div className="w-8 h-8 rounded-lg bg-surface-100 flex items-center justify-center text-sm">🏠</div>
                         <div>
                           <p className="text-xs font-semibold text-surface-700 truncate max-w-[140px]">{f.tipoInmueble}</p>
-                          <p className="text-[10px] text-surface-400 truncate max-w-[140px]">{f.propietario}</p>
+                          <p className="text-[10px] text-surface-400 truncate max-w-[140px]">{f.propietarioNombre}</p>
                         </div>
                       </div>
                       {isCerrado ? (
@@ -390,7 +391,7 @@ const Dashboard: FC = () => {
                     </div>
 
                     <div className="grid grid-cols-3 gap-2 text-center mb-3">
-                      <div><p className="text-[9px] text-surface-400 uppercase">Ingreso</p><p className="text-xs font-bold text-surface-700">{formatCompact(f.precio || 0)}</p></div>
+                      <div><p className="text-[9px] text-surface-400 uppercase">Ingreso</p><p className="text-xs font-bold text-surface-700">{formatCompact(f.precioEsperado || 0)}</p></div>
                       <div><p className="text-[9px] text-surface-400 uppercase">Costos</p><p className="text-xs font-bold text-red-600">{formatCompact(tc)}</p></div>
                       <div><p className="text-[9px] text-surface-400 uppercase">Margen</p><p className={`text-xs font-bold ${margen >= 0 ? 'text-emerald-600' : 'text-red-600'}`}>{margenPct.toFixed(1)}%</p></div>
                     </div>

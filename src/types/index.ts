@@ -1,14 +1,11 @@
-export type EstadoFolio = 'captacion' | 'legal' | 'marketing' | 'venta' | 'cerrado';
+export type EstadoFolio = 'Captación' | 'Comercial' | 'Legal' | 'Gerencia' | 'Marketing' | 'Publicado';
 
 export type ScoreFolio = 'A' | 'B' | 'C';
 
 export type TipoInmueble =
   | 'Casa'
   | 'Departamento'
-  | 'Terreno'
-  | 'Oficina'
-  | 'Local Comercial'
-  | 'Bodega';
+  | 'Terreno';
 
 export type TipoActividad =
   | 'Llamada'
@@ -69,17 +66,42 @@ export interface Notificacion {
 }
 
 export interface Folio {
+  // DATOS GENERALES
   id: string;
   estado: EstadoFolio;
+  fechaCierre?: string;
+  tiempoTotalProceso?: number;
+  responsablePrincipal?: string;
+  categoria: 'A' | 'B' | 'C';
+  sede: string;
+  readonly fechaCreacion: string;
+
+  // DATOS DEL INMUEBLE
   tipoInmueble: TipoInmueble;
-  propietario: string;
-  responsable: string;
+  metraje: number;
+  antiguedad: string | number;
+  partidaRegistral: string;
+  precioEsperado: number;
+  precioSugerido: number;
+  urgenciaVenta: string;
+  departamento?: string;
+  provincia?: string;
+  distrito?: string;
+  latitud: number;
+  longitud: number;
+
+  // DATOS DEL PROPIETARIO
+  origen: 'Meta' | 'Orgánico' | 'Referido';
+  propietarioNombre: string;
+  propietarioDni: string;
+  cantidadPropietarios: number;
+  propietarioContacto: string;
+  nivelDisposicion: string;
   score: ScoreFolio;
+
+  // OTRAS RELACIONES Y CAMPOS
   direccion?: string;
-  latitud?: number;
-  longitud?: number;
-  precio?: number;
-  fechaCreacion: string;
+  responsable: string;
   actividades: Actividad[];
   costos: Costo[];
   campanaPausada?: boolean;
@@ -94,7 +116,7 @@ export interface ColumnaKanban {
   iconColor: string;
 }
 
-export type VistaActiva = 'kanban' | 'dashboard' | 'agentes' | 'usuarios' | 'agenda';
+export type VistaActiva = 'kanban' | 'dashboard' | 'agentes' | 'usuarios' | 'agenda' | 'misfolios';
 
 export interface FiltrosGlobales {
   fechaInicio: string;

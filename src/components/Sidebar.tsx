@@ -6,6 +6,7 @@ import { useUIStore } from '../store/useUIStore';
 import type { VistaActiva } from '../types';
 
 const allNavItems: { id: VistaActiva; label: string; icon: string }[] = [
+  { id: 'misfolios', label: 'Mis Folios Asignados', icon: '📋' },
   { id: 'kanban', label: 'Tablero Kanban', icon: '◫' },
   { id: 'dashboard', label: 'Dashboard', icon: '◩' },
   { id: 'agenda', label: 'Agenda', icon: '📅' },
@@ -23,8 +24,8 @@ const Sidebar: FC = () => {
 
   const navItems = allNavItems.filter((item) => permisos.vistas.includes(item.id));
 
-  const cerrados = folios.filter((f) => f.estado === 'cerrado').length;
-  const activos = folios.filter((f) => f.estado !== 'cerrado').length;
+  const cerrados = folios.filter((f) => f.estado === 'Publicado').length;
+  const activos = folios.filter((f) => f.estado !== 'Publicado').length;
 
   const rolesConfig = useUsuarioStore(s => s.rolesConfig);
   const rolConfig = usuario ? rolesConfig[usuario.rol] : null;

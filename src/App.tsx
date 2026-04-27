@@ -14,6 +14,7 @@ import FolioDetailModal from './components/FolioDetailModal';
 import CentroNotificaciones from './components/CentroNotificaciones';
 import SelectorUsuario from './components/SelectorUsuario';
 import AccesoRestringido from './components/AccesoRestringido';
+import MisFolios from './components/MisFolios';
 
 const VISTA_CONFIG: Record<string, { label: string; icon: string }> = {
   kanban: { label: 'Tablero Kanban', icon: '◫' },
@@ -21,6 +22,7 @@ const VISTA_CONFIG: Record<string, { label: string; icon: string }> = {
   agenda: { label: 'Agenda de Visitas', icon: '📅' },
   agentes: { label: 'Reporte de Agentes', icon: '◨' },
   usuarios: { label: 'Configuración de Usuarios', icon: '⚙' },
+  misfolios: { label: 'Mis Folios Asignados', icon: '📋' },
 };
 
 const App: FC = () => {
@@ -34,10 +36,21 @@ const App: FC = () => {
   const toggleSidebar = useUIStore((s) => s.toggleSidebar);
   const setSidebarAbierto = useUIStore((s) => s.setSidebarAbierto);
 
+  const usuarioActual = useUsuarioStore((s) => s.getUsuarioActual());
+
   useEffect(() => {
     inicializarUsuarios();
     inicializar();
   }, [inicializar, inicializarUsuarios]);
+
+  useEffect(() => {
+    // Redirección inicial para Comercial y Call Center
+    if (usuarioActual && (usuarioActual.rol === 'Comercial' || usuarioActual.rol === 'Call Center')) {
+      if (vistaActiva === 'kanban' || vistaActiva === 'dashboard') {
+        useFolioStore.getState().setVistaActiva('misfolios');
+      }
+    }
+  }, [usuarioActual]);
 
   useEffect(() => {
     if (modoOscuro) document.documentElement.classList.add('dark');
@@ -71,6 +84,8 @@ const App: FC = () => {
         return <ReporteAgentes />;
       case 'usuarios':
         return <ConfigUsuarios />;
+      case 'misfolios':
+        return <MisFolios />;
       default:
         return <KanbanBoard />;
     }

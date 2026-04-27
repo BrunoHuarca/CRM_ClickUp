@@ -64,7 +64,7 @@ const ConfigUsuarios: FC = () => {
       },
       {
         vistas: vistasSeleccionadas,
-        etapasVisibles: ['captacion', 'legal', 'marketing', 'venta', 'cerrado'],
+        etapasVisibles: ['captacion', 'legal', 'marketing', 'venta', 'Publicado'],
         puedeCrearFolio: crearF,
         puedeMoverFolio: moverF,
         puedeEliminarCosto: eliminarCos,
@@ -222,7 +222,7 @@ const ConfigUsuarios: FC = () => {
               <div className="flex flex-wrap gap-2">
                 {permisosRoles[rol]?.vistas.map((v) => (
                   <span key={v} className="px-2 py-0.5 rounded bg-emerald-50 text-emerald-700 text-[10px] font-medium border border-emerald-200">
-                    ✓ {v === 'kanban' ? 'Kanban' : v === 'dashboard' ? 'Dashboard' : v === 'agentes' ? 'Agentes' : 'Usuarios'}
+                    ✓ {v === 'kanban' ? 'Kanban' : v === 'dashboard' ? 'Dashboard' : v === 'agentes' ? 'Agentes' : v === 'misfolios' ? 'Mis Folios' : 'Usuarios'}
                   </span>
                 ))}
                 {!permisosRoles[rol]?.puedeCrearFolio && (
@@ -293,7 +293,7 @@ const ConfigUsuarios: FC = () => {
                       <div className="flex gap-1 justify-center flex-wrap">
                         {perms?.vistas.map((v) => (
                           <span key={v} className="px-1.5 py-0.5 rounded text-[9px] bg-surface-100 text-surface-600 font-medium">
-                            {v === 'kanban' ? '◫' : v === 'dashboard' ? '◩' : v === 'agentes' ? '◨' : '⚙'}
+                            {v === 'kanban' ? '◫' : v === 'dashboard' ? '◩' : v === 'agentes' ? '◨' : v === 'misfolios' ? '📋' : '⚙'}
                           </span>
                         ))}
                       </div>
@@ -388,7 +388,7 @@ const ConfigUsuarios: FC = () => {
                 <div>
                   <h4 className="text-xs font-bold text-surface-700 mb-3 border-b border-surface-200 pb-2">Vistas Permitidas</h4>
                   <div className="space-y-2">
-                    {(['kanban', 'dashboard', 'agentes', 'agenda', 'usuarios'] as VistaActiva[]).map(v => (
+                    {(['misfolios', 'kanban', 'dashboard', 'agentes', 'agenda', 'usuarios'] as VistaActiva[]).map(v => (
                       <label key={v} className="flex items-center gap-2 cursor-pointer">
                         <input
                           type="checkbox"
@@ -396,7 +396,9 @@ const ConfigUsuarios: FC = () => {
                           onChange={() => toggleVista(v)}
                           className="w-4 h-4 rounded text-surface-800 focus:ring-surface-800"
                         />
-                        <span className="text-sm font-medium text-surface-600 capitalize">{v === 'usuarios' ? 'Configuración Usuarios' : v}</span>
+                        <span className="text-sm font-medium text-surface-600 capitalize">
+                          {v === 'usuarios' ? 'Configuración Usuarios' : v === 'misfolios' ? 'Mis Folios Asignados' : v}
+                        </span>
                       </label>
                     ))}
                   </div>

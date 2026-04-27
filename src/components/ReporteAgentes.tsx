@@ -47,13 +47,13 @@ const ReporteAgentes: FC = () => {
       const agent = agentesMap.get(nombre)!;
       agent.totalFolios++;
 
-      if (folio.estado === 'cerrado') {
+      if (folio.estado === 'Publicado') {
         agent.foliosCerrados++;
       } else {
         agent.foliosActivos++;
       }
 
-      agent.ingresoTotal += folio.precio || 0;
+      agent.ingresoTotal += folio.precioEsperado || 0;
       agent.costoTotal += (folio.costos || []).reduce((sum, c) => sum + c.monto, 0);
 
       const etapa = folio.estado;
@@ -101,9 +101,9 @@ const ReporteAgentes: FC = () => {
   }, [folios, sortBy]);
 
   const formatCurrency = (val: number) =>
-    new Intl.NumberFormat('es-PE', {
+    new Intl.NumberFormat('en-US', {
       style: 'currency',
-      currency: 'PEN',
+      currency: 'USD',
       maximumFractionDigits: 0,
     }).format(val);
 

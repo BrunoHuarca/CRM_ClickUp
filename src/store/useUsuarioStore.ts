@@ -146,13 +146,16 @@ export const useUsuarioStore = create<UsuarioStore>()(
       },
 
       inicializar: () => {
-        const { usuarios, initialized } = get();
-        if (!initialized || usuarios.length === 0) {
+        const { usuarios, initialized, permisosRoles } = get();
+        const hasOldRoles = permisosRoles['Admin']?.etapasVisibles.includes('captacion');
+        const missingMisfolios = !permisosRoles['Admin']?.vistas.includes('misfolios');
+        
+        if (!initialized || usuarios.length === 0 || hasOldRoles || missingMisfolios) {
           set({
-            usuarios: usuariosEjemplo,
+            usuarios: usuarios.length === 0 ? usuariosEjemplo : usuarios,
             rolesConfig: DEFAULT_ROLES_CONFIG,
             permisosRoles: DEFAULT_PERMISOS_POR_ROL,
-            usuarioActualId: 'user-001', // Admin by default
+            usuarioActualId: get().usuarioActualId || 'user-001',
             initialized: true,
           });
         }

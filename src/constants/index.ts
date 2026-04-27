@@ -2,7 +2,7 @@ import type { ColumnaKanban } from '../types';
 
 export const COLUMNAS_KANBAN: ColumnaKanban[] = [
   {
-    id: 'captacion',
+    id: 'Captación',
     titulo: 'Captación',
     color: 'text-blue-700',
     bgColor: 'bg-blue-50',
@@ -10,36 +10,44 @@ export const COLUMNAS_KANBAN: ColumnaKanban[] = [
     iconColor: 'text-blue-500',
   },
   {
-    id: 'legal',
-    titulo: 'Legal',
+    id: 'Comercial',
+    titulo: 'Comercial',
     color: 'text-amber-700',
     bgColor: 'bg-amber-50',
     borderColor: 'border-amber-300',
     iconColor: 'text-amber-500',
   },
   {
-    id: 'marketing',
-    titulo: 'Marketing',
+    id: 'Legal',
+    titulo: 'Legal',
     color: 'text-purple-700',
     bgColor: 'bg-purple-50',
     borderColor: 'border-purple-300',
     iconColor: 'text-purple-500',
   },
   {
-    id: 'venta',
-    titulo: 'Venta',
+    id: 'Gerencia',
+    titulo: 'Gerencia',
+    color: 'text-rose-700',
+    bgColor: 'bg-rose-50',
+    borderColor: 'border-rose-300',
+    iconColor: 'text-rose-500',
+  },
+  {
+    id: 'Marketing',
+    titulo: 'Marketing',
+    color: 'text-fuchsia-700',
+    bgColor: 'bg-fuchsia-50',
+    borderColor: 'border-fuchsia-300',
+    iconColor: 'text-fuchsia-500',
+  },
+  {
+    id: 'Publicado',
+    titulo: 'Publicado',
     color: 'text-emerald-700',
     bgColor: 'bg-emerald-50',
     borderColor: 'border-emerald-300',
     iconColor: 'text-emerald-500',
-  },
-  {
-    id: 'cerrado',
-    titulo: 'Cerrado',
-    color: 'text-slate-700',
-    bgColor: 'bg-slate-50',
-    borderColor: 'border-slate-300',
-    iconColor: 'text-slate-500',
   },
 ];
 
@@ -53,9 +61,6 @@ export const TIPOS_INMUEBLE = [
   'Casa',
   'Departamento',
   'Terreno',
-  'Oficina',
-  'Local Comercial',
-  'Bodega',
 ] as const;
 
 export const TIPOS_ACTIVIDAD = [
@@ -103,18 +108,21 @@ export const DIAS_ALERTA_INACTIVIDAD = 7;
 
 /** Maximum hours allowed per stage before triggering an alert */
 export const TIEMPOS_MAXIMOS_ETAPA: Record<string, number> = {
-  captacion: 72,   // 3 days
-  legal: 120,      // 5 days
-  marketing: 168,  // 7 days
-  venta: 240,      // 10 days
+  Captación: 72,   // 3 days
+  Comercial: 120,  // 5 days
+  Legal: 168,      // 7 days
+  Gerencia: 120,   // 5 days
+  Marketing: 168,  // 7 days
+  Publicado: 240,  // 10 days
 };
 
 export const ETAPA_LABELS: Record<string, string> = {
-  captacion: 'Captación',
-  legal: 'Legal',
-  marketing: 'Marketing',
-  venta: 'Venta',
-  cerrado: 'Cerrado',
+  Captación: 'Captación',
+  Comercial: 'Comercial',
+  Legal: 'Legal',
+  Gerencia: 'Gerencia',
+  Marketing: 'Marketing',
+  Publicado: 'Publicado',
 };
 
 /* ========== RBAC CONFIG ========== */
@@ -149,8 +157,8 @@ export interface Permisos {
 
 export const PERMISOS_POR_ROL: Record<string, Permisos> = {
   Admin: {
-    vistas: ['kanban', 'dashboard', 'agentes', 'usuarios', 'agenda'],
-    etapasVisibles: ['captacion', 'legal', 'marketing', 'venta', 'cerrado'],
+    vistas: ['misfolios', 'kanban', 'dashboard', 'agentes', 'usuarios', 'agenda'],
+    etapasVisibles: ['Captación', 'Comercial', 'Legal', 'Gerencia', 'Marketing', 'Publicado'],
     puedeCrearFolio: true,
     puedeMoverFolio: true,
     puedeEliminarCosto: true,
@@ -158,8 +166,8 @@ export const PERMISOS_POR_ROL: Record<string, Permisos> = {
     puedeVerRentabilidad: true,
   },
   Comercial: {
-    vistas: ['kanban', 'dashboard', 'agentes', 'agenda', 'usuarios'],
-    etapasVisibles: ['captacion', 'legal', 'marketing', 'venta', 'cerrado'],
+    vistas: ['misfolios', 'kanban', 'dashboard', 'agentes', 'agenda', 'usuarios'],
+    etapasVisibles: ['Captación', 'Comercial', 'Legal', 'Gerencia', 'Marketing', 'Publicado'],
     puedeCrearFolio: true,
     puedeMoverFolio: true,
     puedeEliminarCosto: false,
@@ -167,8 +175,8 @@ export const PERMISOS_POR_ROL: Record<string, Permisos> = {
     puedeVerRentabilidad: false,
   },
   'Call Center': {
-    vistas: ['kanban', 'agenda', 'usuarios'],
-    etapasVisibles: ['captacion'],
+    vistas: ['misfolios', 'kanban', 'agenda', 'usuarios'],
+    etapasVisibles: ['Captación'],
     puedeCrearFolio: true,
     puedeMoverFolio: false,
     puedeEliminarCosto: false,
@@ -176,8 +184,8 @@ export const PERMISOS_POR_ROL: Record<string, Permisos> = {
     puedeVerRentabilidad: false,
   },
   Legal: {
-    vistas: ['kanban', 'usuarios'],
-    etapasVisibles: ['legal'],
+    vistas: ['misfolios', 'kanban', 'usuarios'],
+    etapasVisibles: ['Legal'],
     puedeCrearFolio: false,
     puedeMoverFolio: false,
     puedeEliminarCosto: false,
