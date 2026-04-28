@@ -5,13 +5,23 @@ import { useFoliosFiltrados } from '../hooks/useFoliosFiltrados';
 import KanbanColumn from './KanbanColumn';
 import FiltrosGlobales from './FiltrosGlobales';
 
+import { useUsuarioActual } from '../hooks/usePermisos';
+
 const KanbanBoard: FC = () => {
   const foliosFiltrados = useFoliosFiltrados();
   const permisos = usePermisos();
+  const usuario = useUsuarioActual();
 
-  const columnasVisibles = COLUMNAS_KANBAN.filter((c) =>
-    permisos.etapasVisibles.includes(c.id)
-  );
+  const columnasVisibles = COLUMNAS_KANBAN.filter((c) => {
+    // Si tiene permiso por rol para ver la etapa
+    if (permisos.etapasVisibles.includes(c.id)) return true;
+    
+    // Si tiene un folio asignado en esta etapa (aunque su rol no la vea normalmente)
+    return foliosFiltrados.some(f => 
+      f.estado === c.id && 
+      (f.responsable === usuario?.nombre || f.responsablePrincipal === usuario?.nombre)
+    );
+  });
 
   return (
     <div className="flex flex-col h-full bg-surface-100 flex-1 overflow-x-auto p-6">

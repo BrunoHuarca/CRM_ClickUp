@@ -10,7 +10,8 @@ import {
 } from '../constants';
 import type { TipoActividad, CategoriaCosto } from '../types';
 import { useAlertasFolio } from '../hooks/useAlertasFolio';
-import { usePermisos } from '../hooks/usePermisos';
+import { usePermisos, useUsuarioActual } from '../hooks/usePermisos';
+import { useUsuarioStore } from '../store/useUsuarioStore';
 
 type TabActiva = 'detalle' | 'timeline' | 'costos';
 
@@ -173,6 +174,38 @@ interface DetalleTabProps {
 
 const DetalleTab: FC<DetalleTabProps> = ({ folio, formatCurrency, totalCostos, utilidad }) => {
   const alertas = useAlertasFolio(folio);
+  return <DetalleTabContent folio={folio} formatCurrency={formatCurrency} totalCostos={totalCostos} utilidad={utilidad} alertas={alertas} />;
+};
+
+const DetalleTabContent: FC<DetalleTabProps & { alertas: any[] }> = ({ folio, formatCurrency, totalCostos, utilidad, alertas }) => {
+  const actualizarFolio = useFolioStore((s) => s.actualizarFolio);
+  const moverFolio = useFolioStore((s) => s.moverFolio);
+  const usuarios = useUsuarioStore((s) => s.usuarios);
+  const usuarioActual = useUsuarioActual();
+
+  const [comercialId, setComercialId] = useState('');
+  const [fechaVisita, setFechaVisita] = useState(folio.visitaProgramada || '');
+  const [procesando, setProcesando] = useState(false);
+
+  const agentesComerciales = usuarios.filter((u) => u.rol === 'Comercial' && u.activo);
+  
+  const handleAvanzarComercial = async () => {
+    if (!comercialId || !fechaVisita) {
+      alert('Para pasar a Comercial, debes asignar un comercial y programar una visita.');
+      return;
+    }
+
+    setProcesando(true);
+    const selected = usuarios.find(u => u.id === comercialId);
+    
+    actualizarFolio(folio.id, {
+      responsablePrincipal: selected?.nombre || '',
+      visitaProgramada: fechaVisita
+    });
+    
+    moverFolio(folio.id, 'Comercial');
+    setProcesando(false);
+  };
 
   return (
     <div className="p-6 space-y-6 animate-fade-in">
@@ -207,6 +240,195 @@ const DetalleTab: FC<DetalleTabProps> = ({ folio, formatCurrency, totalCostos, u
         </div>
       </div>
 
+      {/* Formulario de Transición - Call Center -> Comercial */}
+      {(usuarioActual?.rol === 'Call Center' || usuarioActual?.rol === 'Admin') && folio.estado === 'Captación' && (
+        <div className="bg-[#047D7D]/5 rounded-2xl p-5 border border-[#047D7D]/20 space-y-4">
+          <div className="flex items-center gap-2 mb-2">
+            <span className="text-lg">🎯</span>
+            <h4 className="text-sm font-bold text-[#047D7D] uppercase tracking-wider">Acciones de Captación</h4>
+          </div>
+          
+          <div className="grid grid-cols-2 gap-4">
+            <div>
+              <label className="block text-[10px] font-bold text-surface-500 uppercase mb-1.5">Asignar Comercial *</label>
+              <select
+                value={comercialId}
+                onChange={(e) => setComercialId(e.target.value)}
+                className="w-full px-3 py-2 bg-white border border-surface-200 rounded-xl text-xs focus:outline-none focus:border-[#047D7D] transition-smooth"
+              >
+                <option value="">Seleccionar...</option>
+                {agentesComerciales.map(u => (
+                  <option key={u.id} value={u.id}>{u.nombre}</option>
+                ))}
+              </select>
+            </div>
+            <div>
+              <label className="block text-[10px] font-bold text-surface-500 uppercase mb-1.5">Programar Visita *</label>
+              <input
+                type="datetime-local"
+                value={fechaVisita}
+                onChange={(e) => setFechaVisita(e.target.value)}
+                className="w-full px-3 py-2 bg-white border border-surface-200 rounded-xl text-xs focus:outline-none focus:border-[#047D7D] transition-smooth"
+              />
+            </div>
+          </div>
+
+          <button
+            onClick={handleAvanzarComercial}
+            disabled={procesando || !comercialId || !fechaVisita}
+            className="w-full bg-[#047D7D] hover:bg-[#036666] disabled:opacity-50 disabled:cursor-not-allowed text-white py-2.5 rounded-xl text-xs font-bold transition-smooth shadow-lg shadow-[#047D7D]/20 flex items-center justify-center gap-2"
+          >
+            {procesando ? 'Procesando...' : 'Pasar a Etapa Comercial 🚀'}
+          </button>
+        </div>
+      )}
+
+      {/* Mostrar Visita Programada si existe */}
+      {folio.visitaProgramada && (
+        <div className="bg-amber-50 rounded-xl p-4 border border-amber-200 flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            <span className="text-xl">📅</span>
+            <div>
+              <p className="text-[10px] text-amber-600 font-bold uppercase tracking-wider">Visita Programada</p>
+              <p className="text-sm font-bold text-amber-900">
+                {new Date(folio.visitaProgramada).toLocaleString('es-PE', {
+                  day: '2-digit',
+                  month: 'long',
+                  year: 'numeric',
+                  hour: '2-digit',
+                  minute: '2-digit'
+                })}
+              </p>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Formulario de Transición - Comercial -> Legal */}
+      {(usuarioActual?.rol === 'Comercial' || usuarioActual?.rol === 'Admin') && folio.estado === 'Comercial' && (
+        <div className="bg-blue-50 rounded-2xl p-5 border border-blue-200 space-y-4">
+          <div className="flex items-center gap-2 mb-2">
+            <span className="text-lg">🤝</span>
+            <h4 className="text-sm font-bold text-blue-700 uppercase tracking-wider">Acciones Comerciales</h4>
+          </div>
+
+          <div className="grid grid-cols-2 gap-4">
+            <div>
+              <label className="block text-[10px] font-bold text-surface-500 uppercase mb-1.5">Tasación (USD) *</label>
+              <input
+                type="number"
+                defaultValue={folio.tasacion}
+                onBlur={(e) => actualizarFolio(folio.id, { tasacion: Number(e.target.value) })}
+                className="w-full px-3 py-2 bg-white border border-surface-200 rounded-xl text-xs focus:outline-none focus:border-blue-500 transition-smooth"
+                placeholder="0.00"
+              />
+            </div>
+            <div>
+              <label className="block text-[10px] font-bold text-surface-500 uppercase mb-1.5">Calificación (Score) *</label>
+              <div className="flex gap-1">
+                {(['A', 'B', 'C'] as const).map((s) => (
+                  <button
+                    key={s}
+                    onClick={() => actualizarFolio(folio.id, { score: s })}
+                    className={`flex-1 py-1.5 rounded-lg text-xs font-bold transition-smooth ${
+                      folio.score === s
+                        ? 'bg-blue-600 text-white'
+                        : 'bg-white text-surface-600 border border-surface-200 hover:bg-blue-50'
+                    }`}
+                  >
+                    {s}
+                  </button>
+                ))}
+              </div>
+            </div>
+          </div>
+
+          <div>
+            <label className="block text-[10px] font-bold text-surface-500 uppercase mb-1.5">Multimedia (URLs separadas por coma) *</label>
+            <textarea
+              defaultValue={folio.multimediaUrls?.join(', ') || ''}
+              onBlur={(e) => {
+                const urls = e.target.value.split(',').map(u => u.trim()).filter(Boolean);
+                actualizarFolio(folio.id, { multimediaUrls: urls });
+              }}
+              rows={2}
+              className="w-full px-3 py-2 bg-white border border-surface-200 rounded-xl text-xs focus:outline-none focus:border-blue-500 transition-smooth resize-none"
+              placeholder="https://foto1.jpg, https://video.mp4"
+            />
+          </div>
+
+          <div className="flex items-center justify-between bg-white p-3 rounded-xl border border-surface-200">
+            <span className="text-xs font-bold text-surface-700">Negociación Aceptada por el Propietario?</span>
+            <button
+              onClick={() => actualizarFolio(folio.id, { negociacionAceptada: !folio.negociacionAceptada })}
+              className={`px-4 py-1.5 rounded-lg text-[10px] font-bold uppercase transition-smooth ${
+                folio.negociacionAceptada
+                  ? 'bg-emerald-500 text-white'
+                  : 'bg-red-500 text-white'
+              }`}
+            >
+              {folio.negociacionAceptada ? 'Aceptada ✅' : 'No Aceptada ❌'}
+            </button>
+          </div>
+
+          <button
+            onClick={() => {
+              if (!folio.tasacion || !folio.multimediaUrls?.length || !folio.negociacionAceptada) {
+                alert('Debes completar la tasación, cargar multimedia y confirmar la negociación para pasar a Legal.');
+                return;
+              }
+              moverFolio(folio.id, 'Legal');
+            }}
+            className="w-full bg-blue-600 hover:bg-blue-700 text-white py-2.5 rounded-xl text-xs font-bold transition-smooth shadow-lg shadow-blue-500/20 flex items-center justify-center gap-2"
+          >
+            Pasar a Etapa Legal ⚖️
+          </button>
+        </div>
+      )}
+
+      {/* Mostrar Tasación si existe */}
+      {folio.tasacion && (
+        <div className="bg-blue-50 rounded-xl p-4 border border-blue-200 flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            <span className="text-xl">📊</span>
+            <div>
+              <p className="text-[10px] text-blue-600 font-bold uppercase tracking-wider">Tasación Oficial</p>
+              <p className="text-sm font-bold text-blue-900">{formatCurrency(folio.tasacion)}</p>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Mostrar Multimedia si existe */}
+      {folio.multimediaUrls && folio.multimediaUrls.length > 0 && (
+        <div className="space-y-2">
+          <p className="text-[10px] text-surface-500 font-bold uppercase tracking-wider px-1">Material Multimedia</p>
+          <div className="flex gap-2 overflow-x-auto pb-2 scrollbar-thin">
+            {folio.multimediaUrls.map((url, i) => (
+              <div key={i} className="relative group shrink-0">
+                <div className="w-24 h-24 rounded-xl bg-surface-100 border border-surface-200 overflow-hidden flex items-center justify-center">
+                  {url.match(/\.(mp4|webm|ogg)$/) ? (
+                    <span className="text-2xl">🎥</span>
+                  ) : (
+                    <img src={url} alt={`Media ${i}`} className="w-full h-full object-cover" onError={(e) => {
+                      (e.target as any).src = 'https://via.placeholder.com/100?text=Error';
+                    }} />
+                  )}
+                </div>
+                <a 
+                  href={url} 
+                  target="_blank" 
+                  rel="noopener noreferrer"
+                  className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-smooth flex items-center justify-center rounded-xl"
+                >
+                  <span className="text-white text-[10px] font-bold">Ver</span>
+                </a>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
       {/* Info Sections */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         
@@ -237,6 +459,7 @@ const DetalleTab: FC<DetalleTabProps> = ({ folio, formatCurrency, totalCostos, u
             <InfoItem label="Email" value={folio.propietarioEmail || '—'} />
             <InfoItem label="Cant. Propietarios" value={String(folio.cantidadPropietarios || 1)} />
             <InfoItem label="Origen" value={folio.origen || '—'} />
+            <InfoItem label="Disposición" value={folio.nivelDisposicion || '—'} />
           </div>
         </div>
       </div>

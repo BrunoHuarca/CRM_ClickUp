@@ -1,4 +1,4 @@
-import { type FC, type MouseEvent, useMemo, useState } from 'react';
+import { type FC, type MouseEvent, useState } from 'react';
 import type { Folio } from '../types';
 import { SCORE_CONFIG, AVATAR_GRADIENTS } from '../constants';
 import { useFolioStore } from '../store/useFolioStore';
@@ -201,7 +201,12 @@ const CardContent: FC<CardContentProps> = ({
     </div>
 
     {/* Footer */}
-    <AvatarFooter responsable={folio.responsable} fecha={folio.fechaCreacion} formatDate={formatDate} />
+    <AvatarFooter 
+      responsable={folio.responsable} 
+      responsablePrincipal={folio.responsablePrincipal} 
+      fecha={folio.fechaCreacion} 
+      formatDate={formatDate} 
+    />
 
     {/* Owner & Map Action */}
     <div className="mt-2 flex items-center justify-between">
@@ -221,33 +226,49 @@ const CardContent: FC<CardContentProps> = ({
   </>
 );
 
-const AvatarFooter: FC<{ responsable: string; fecha: string; formatDate: (f: string) => string }> = ({
+const AvatarFooter: FC<{ responsable: string; responsablePrincipal?: string; fecha: string; formatDate: (f: string) => string }> = ({
   responsable,
+  responsablePrincipal,
   fecha,
   formatDate,
 }) => {
   const usuarios = useUsuarioStore((s) => s.usuarios);
-  const usuario = useMemo(
-    () => usuarios.find((u) => u.nombre === responsable),
-    [usuarios, responsable]
-  );
+  
+  const getAvatarData = (nombre: string) => {
+    const u = usuarios.find((u) => u.nombre === nombre);
+    const gradient = u ? AVATAR_GRADIENTS[u.color] || AVATAR_GRADIENTS.purple : 'from-surface-400 to-surface-600';
+    const initials = u?.avatar || nombre.charAt(0);
+    return { gradient, initials };
+  };
 
-  const gradient = usuario
-    ? AVATAR_GRADIENTS[usuario.color] || AVATAR_GRADIENTS.purple
-    : 'from-primary-400 to-primary-600';
-  const initials = usuario?.avatar || responsable.charAt(0);
+  const reg = getAvatarData(responsable);
+  const principal = responsablePrincipal ? getAvatarData(responsablePrincipal) : null;
 
   return (
     <div className="pt-3 border-t border-surface-100 flex items-center justify-between">
-      <div className="flex items-center gap-2">
-        <div className={`w-6 h-6 rounded-full bg-gradient-to-br ${gradient} flex items-center justify-center`}>
-          <span className="text-white text-[10px] font-bold">{initials}</span>
+      <div className="flex items-center -space-x-1.5 overflow-hidden">
+        <div 
+          className={`w-6 h-6 rounded-full bg-gradient-to-br ${reg.gradient} flex items-center justify-center border-2 border-white`}
+          title={`Registrado por: ${responsable}`}
+        >
+          <span className="text-white text-[8px] font-bold">{reg.initials}</span>
         </div>
-        <span className="text-xs text-surface-600 font-medium truncate max-w-[100px]">
-          {responsable}
-        </span>
+        {principal && principal.initials !== reg.initials && (
+          <div 
+            className={`w-6 h-6 rounded-full bg-gradient-to-br ${principal.gradient} flex items-center justify-center border-2 border-white shadow-sm ring-1 ring-[#047D7D]/20`}
+            title={`Comercial: ${responsablePrincipal}`}
+          >
+            <span className="text-white text-[8px] font-bold">{principal.initials}</span>
+          </div>
+        )}
+        <div className="ml-3 flex flex-col">
+          <span className="text-[9px] text-surface-400 leading-none mb-0.5">Responsables</span>
+          <span className="text-[10px] text-surface-700 font-bold leading-none truncate max-w-[80px]">
+            {responsablePrincipal || responsable}
+          </span>
+        </div>
       </div>
-      <span className="text-[10px] text-surface-400">
+      <span className="text-[10px] text-surface-400 font-medium">
         {formatDate(fecha)}
       </span>
     </div>

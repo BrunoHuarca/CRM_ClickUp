@@ -18,6 +18,7 @@ const CrearFolioModal: FC = () => {
   // DATOS GENERALES
   const [estado, setEstado] = useState<EstadoFolio>('Captación');
   const [responsableId, setResponsableId] = useState('');
+  const [visitaProgramada, setVisitaProgramada] = useState('');
 
   // DATOS DEL INMUEBLE
   const [tipoInmueble, setTipoInmueble] = useState<TipoInmueble>('Casa');
@@ -40,6 +41,7 @@ const CrearFolioModal: FC = () => {
   const [cantidadPropietarios, setCantidadPropietarios] = useState('1');
   const [propietarioTelefono, setPropietarioTelefono] = useState('');
   const [propietarioEmail, setPropietarioEmail] = useState('');
+  const [nivelDisposicion, setNivelDisposicion] = useState<'Alta' | 'Media' | 'Baja'>('Media');
   const [score, setScore] = useState<ScoreFolio>('B');
 
   const [activeTab, setActiveTab] = useState<'general' | 'inmueble' | 'propietario'>('general');
@@ -47,6 +49,7 @@ const CrearFolioModal: FC = () => {
   const resetForm = () => {
     setEstado('Captación');
     setResponsableId('');
+    setVisitaProgramada('');
 
     setTipoInmueble('Casa');
     setMetraje('');
@@ -67,6 +70,7 @@ const CrearFolioModal: FC = () => {
     setCantidadPropietarios('1');
     setPropietarioTelefono('');
     setPropietarioEmail('');
+    setNivelDisposicion('Media');
     setScore('B');
 
     setActiveTab('general');
@@ -108,7 +112,9 @@ const CrearFolioModal: FC = () => {
       cantidadPropietarios: Number(cantidadPropietarios),
       propietarioTelefono: propietarioTelefono.trim(),
       propietarioEmail: propietarioEmail.trim(),
+      nivelDisposicion,
       score,
+      visitaProgramada: visitaProgramada || undefined,
       responsable: usuarioActual?.nombre || 'Desconocido',
       // hidden fields:
       fechaCierre: undefined,
@@ -231,6 +237,15 @@ const CrearFolioModal: FC = () => {
                     value={new Date().toLocaleDateString()}
                     disabled
                     className="w-full px-3 py-2.5 bg-surface-100 border border-surface-200 rounded-xl text-sm focus:outline-none focus:border-[#047D7D] transition-smooth cursor-not-allowed opacity-70"
+                  />
+                </div>
+                <div>
+                  <label className="block text-xs font-semibold text-surface-600 mb-1.5 uppercase">Programar Visita (Opcional)</label>
+                  <input
+                    type="datetime-local"
+                    value={visitaProgramada}
+                    onChange={(e) => setVisitaProgramada(e.target.value)}
+                    className="w-full px-3 py-2.5 bg-surface-50 border border-surface-200 rounded-xl text-sm focus:outline-none focus:border-[#047D7D] transition-smooth"
                   />
                 </div>
               </div>
@@ -432,6 +447,18 @@ const CrearFolioModal: FC = () => {
                     onChange={(e) => setCantidadPropietarios(e.target.value)}
                     className="w-full px-3 py-2.5 bg-surface-50 border border-surface-200 rounded-xl text-sm focus:outline-none focus:border-[#047D7D] transition-smooth"
                   />
+                </div>
+                <div>
+                  <label className="block text-xs font-semibold text-surface-600 mb-1.5 uppercase">Nivel de Disposición</label>
+                  <select
+                    value={nivelDisposicion}
+                    onChange={(e) => setNivelDisposicion(e.target.value as any)}
+                    className="w-full px-3 py-2.5 bg-surface-50 border border-surface-200 rounded-xl text-sm focus:outline-none focus:border-[#047D7D] transition-smooth"
+                  >
+                    <option value="Alta">Alta</option>
+                    <option value="Media">Media</option>
+                    <option value="Baja">Baja</option>
+                  </select>
                 </div>
 
                 <div>

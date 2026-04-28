@@ -95,8 +95,13 @@ export interface Folio {
   cantidadPropietarios: number;
   propietarioTelefono: string;
   propietarioEmail: string;
+  nivelDisposicion: 'Alta' | 'Media' | 'Baja';
   score: ScoreFolio;
-
+  visitaProgramada?: string;
+  tasacion?: number;
+  negociacionAceptada?: boolean;
+  multimediaUrls?: string[];
+  
   // OTRAS RELACIONES Y CAMPOS
   direccion?: string;
   responsable: string;

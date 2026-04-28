@@ -73,6 +73,22 @@ const usuariosEjemplo: Usuario[] = [
     color: 'rose',
     activo: true,
   },
+  {
+    id: 'user-006',
+    nombre: 'Sergio Romero',
+    rol: 'Marketing',
+    avatar: 'SR',
+    color: 'pink',
+    activo: true,
+  },
+  {
+    id: 'user-007',
+    nombre: 'Valeria Luna',
+    rol: 'Gerencia',
+    avatar: 'VL',
+    color: 'indigo',
+    activo: true,
+  },
 ];
 
 const DEFAULT_PERMISOS: Permisos = DEFAULT_PERMISOS_POR_ROL['Admin'];

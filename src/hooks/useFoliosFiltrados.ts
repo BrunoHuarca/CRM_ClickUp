@@ -16,8 +16,36 @@ export const useFoliosFiltrados = () => {
     return folios.filter((folio) => {
       // 0. Filtrar por Rol (Seguridad)
       if (usuarioActual && usuarioActual.rol === 'Comercial') {
-        if (folio.responsable !== usuarioActual.nombre) return false;
+        const esCreador = folio.responsable === usuarioActual.nombre;
+        const esAsignado = folio.responsablePrincipal === usuarioActual.nombre;
+        if (!esCreador && !esAsignado) return false;
       }
+
+      if (usuarioActual && usuarioActual.rol === 'Legal') {
+        const esSuEtapa = folio.estado === 'Legal';
+        const esCreador = folio.responsable === usuarioActual.nombre;
+        if (!esSuEtapa && !esCreador) return false;
+      }
+
+      if (usuarioActual && usuarioActual.rol === 'Marketing') {
+        const esSuEtapa = folio.estado === 'Marketing';
+        const esCreador = folio.responsable === usuarioActual.nombre;
+        if (!esSuEtapa && !esCreador) return false;
+      }
+
+      if (usuarioActual && usuarioActual.rol === 'Gerencia') {
+        const esSuEtapa = folio.estado === 'Gerencia';
+        const esCreador = folio.responsable === usuarioActual.nombre;
+        if (!esSuEtapa && !esCreador) return false;
+      }
+
+      if (usuarioActual && usuarioActual.rol === 'Call Center') {
+        const esSuEtapa = folio.estado === 'Captación';
+        const esCreador = folio.responsable === usuarioActual.nombre;
+        if (!esSuEtapa && !esCreador) return false;
+      }
+
+      // Admin no tiene filtros de seguridad (ve todo)
 
       // 1. Filtrar por Responsable
       if (filtros.responsableId !== 'Todos') {

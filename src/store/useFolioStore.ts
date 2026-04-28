@@ -30,6 +30,7 @@ interface FolioStore {
   marcarNotificacionLeida: (notifId: string) => void;
   marcarTodasLeidas: () => void;
   generarNotificaciones: () => void;
+  actualizarFolio: (folioId: string, data: Partial<Folio>) => void;
   inicializar: () => void;
 }
 
@@ -52,6 +53,7 @@ const foliosEjemplo: Folio[] = [
     cantidadPropietarios: 1,
     propietarioTelefono: '999888777',
     propietarioEmail: 'maria@example.com',
+    nivelDisposicion: 'Media',
     responsable: 'Carlos Mendoza',
     score: 'A',
     direccion: 'Av. Reforma 245, CDMX',
@@ -279,6 +281,13 @@ export const useFolioStore = create<FolioStore>()(
         }
       },
 
+      actualizarFolio: (folioId, data) =>
+        set((state) => ({
+          folios: state.folios.map((f) =>
+            f.id === folioId ? { ...f, ...data } : f
+          ),
+        })),
+
       inicializar: () => {
         const { folios, initialized } = get();
         if (!initialized || folios.length === 0) {
@@ -300,6 +309,7 @@ export const useFolioStore = create<FolioStore>()(
                 antiguedad: parseInt(String(f.antiguedad)) || 0,
                 propietarioTelefono: propietarioContacto || '',
                 propietarioEmail: '',
+                nivelDisposicion: f.nivelDisposicion || 'Media',
               };
             });
           }

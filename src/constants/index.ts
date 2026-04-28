@@ -142,6 +142,8 @@ export const ROLES_CONFIG: Record<string, { label: string; color: string; bgColo
   Comercial: { label: 'Comercial', color: 'text-blue-700', bgColor: 'bg-blue-100', borderColor: 'border-blue-200' },
   'Call Center': { label: 'Call Center', color: 'text-emerald-700', bgColor: 'bg-emerald-100', borderColor: 'border-emerald-200' },
   Legal: { label: 'Legal', color: 'text-amber-700', bgColor: 'bg-amber-100', borderColor: 'border-amber-200' },
+  Gerencia: { label: 'Gerencia', color: 'text-rose-700', bgColor: 'bg-rose-100', borderColor: 'border-rose-200' },
+  Marketing: { label: 'Marketing', color: 'text-fuchsia-700', bgColor: 'bg-fuchsia-100', borderColor: 'border-fuchsia-200' },
 };
 
 export const AVATAR_GRADIENTS: Record<string, string> = {
@@ -196,6 +198,24 @@ export const PERMISOS_POR_ROL: Record<string, Permisos> = {
   Legal: {
     vistas: ['misfolios', 'kanban', 'usuarios'],
     etapasVisibles: ['Legal'],
+    puedeCrearFolio: false,
+    puedeMoverFolio: false,
+    puedeEliminarCosto: false,
+    puedeCrearUsuarios: false,
+    puedeVerRentabilidad: false,
+  },
+  Gerencia: {
+    vistas: ['misfolios', 'kanban', 'dashboard', 'usuarios'],
+    etapasVisibles: ['Gerencia'],
+    puedeCrearFolio: false,
+    puedeMoverFolio: false,
+    puedeEliminarCosto: false,
+    puedeCrearUsuarios: false,
+    puedeVerRentabilidad: true,
+  },
+  Marketing: {
+    vistas: ['misfolios', 'kanban', 'usuarios'],
+    etapasVisibles: ['Marketing'],
     puedeCrearFolio: false,
     puedeMoverFolio: false,
     puedeEliminarCosto: false,
