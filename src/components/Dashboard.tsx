@@ -24,6 +24,7 @@ const ETAPA_COLORS: Record<EstadoFolio, string> = {
   Captación: '#3b82f6',
   Comercial: '#f59e0b',
   Legal: '#f59e0b',
+  Firma: '#06b6d4',
   Gerencia: '#10b981',
   Marketing: '#8b5cf6',
   Publicado: '#64748b',

@@ -37,11 +37,9 @@ const foliosEjemplo: Folio[] = [
   {
     id: '001-2026',
     estado: 'Captación',
-    categoria: 'A',
-    sede: 'Lima Central',
     tipoInmueble: 'Casa',
     metraje: 120,
-    antiguedad: '5 años',
+    antiguedad: 5,
     partidaRegistral: '12345678',
     precioEsperado: 4500000,
     precioSugerido: 4400000,
@@ -52,8 +50,8 @@ const foliosEjemplo: Folio[] = [
     propietarioNombre: 'María García López',
     propietarioDni: '12345678',
     cantidadPropietarios: 1,
-    propietarioContacto: '999888777',
-    nivelDisposicion: 'Alta',
+    propietarioTelefono: '999888777',
+    propietarioEmail: 'maria@example.com',
     responsable: 'Carlos Mendoza',
     score: 'A',
     direccion: 'Av. Reforma 245, CDMX',
@@ -290,6 +288,24 @@ export const useFolioStore = create<FolioStore>()(
     }),
     {
       name: 'propify-folios-storage',
+      version: 2,
+      migrate: (persistedState: any, version: number) => {
+        if (version === 1 || !version) {
+          // Migration from old schema
+          if (persistedState && persistedState.folios) {
+            persistedState.folios = persistedState.folios.map((f: any) => {
+              const { categoria, sede, propietarioContacto, nivelDisposicion, ...rest } = f;
+              return {
+                ...rest,
+                antiguedad: parseInt(String(f.antiguedad)) || 0,
+                propietarioTelefono: propietarioContacto || '',
+                propietarioEmail: '',
+              };
+            });
+          }
+        }
+        return persistedState;
+      },
     }
   )
 );

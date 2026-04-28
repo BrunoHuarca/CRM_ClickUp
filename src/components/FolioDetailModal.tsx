@@ -195,6 +195,18 @@ const DetalleTab: FC<DetalleTabProps> = ({ folio, formatCurrency, totalCostos, u
         </div>
       )}
 
+      {/* Responsables */}
+      <div className="grid grid-cols-2 gap-4">
+        <div className="bg-surface-50 rounded-xl p-3 border border-surface-200">
+          <p className="text-[10px] text-surface-500 uppercase font-semibold mb-1">Registrado por</p>
+          <p className="text-sm font-bold text-surface-800">{folio.responsable}</p>
+        </div>
+        <div className="bg-surface-50 rounded-xl p-3 border border-surface-200">
+          <p className="text-[10px] text-surface-500 uppercase font-semibold mb-1">Comercial Asignado</p>
+          <p className="text-sm font-bold text-[#047D7D]">{folio.responsablePrincipal || 'Sin asignar'}</p>
+        </div>
+      </div>
+
       {/* Info Sections */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         
@@ -206,7 +218,7 @@ const DetalleTab: FC<DetalleTabProps> = ({ folio, formatCurrency, totalCostos, u
           <div className="grid grid-cols-2 gap-3">
             <InfoItem label="Tipo" value={folio.tipoInmueble} />
             <InfoItem label="Metraje" value={`${folio.metraje || 0} m²`} />
-            <InfoItem label="Antigüedad" value={folio.antiguedad ? String(folio.antiguedad) : '—'} />
+            <InfoItem label="Antigüedad" value={folio.antiguedad !== undefined ? `${folio.antiguedad} años` : '—'} />
             <InfoItem label="Partida Reg." value={folio.partidaRegistral || '—'} />
             <InfoItem label="Ubicación" value={[folio.distrito, folio.provincia].filter(Boolean).join(', ') || '—'} />
             <InfoItem label="Urgencia Venta" value={folio.urgenciaVenta || '—'} />
@@ -221,10 +233,10 @@ const DetalleTab: FC<DetalleTabProps> = ({ folio, formatCurrency, totalCostos, u
           <div className="grid grid-cols-2 gap-3">
             <InfoItem label="Nombre" value={folio.propietarioNombre || '—'} />
             <InfoItem label="DNI / RUC" value={folio.propietarioDni || '—'} />
-            <InfoItem label="Contacto" value={folio.propietarioContacto || '—'} />
+            <InfoItem label="Teléfono" value={folio.propietarioTelefono || '—'} />
+            <InfoItem label="Email" value={folio.propietarioEmail || '—'} />
             <InfoItem label="Cant. Propietarios" value={String(folio.cantidadPropietarios || 1)} />
             <InfoItem label="Origen" value={folio.origen || '—'} />
-            <InfoItem label="Disposición" value={folio.nivelDisposicion || '—'} />
           </div>
         </div>
       </div>

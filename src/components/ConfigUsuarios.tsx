@@ -64,7 +64,7 @@ const ConfigUsuarios: FC = () => {
       },
       {
         vistas: vistasSeleccionadas,
-        etapasVisibles: ['captacion', 'legal', 'marketing', 'venta', 'Publicado'],
+        etapasVisibles: ['Captación', 'Comercial', 'Legal', 'Firma', 'Gerencia', 'Marketing', 'Publicado'],
         puedeCrearFolio: crearF,
         puedeMoverFolio: moverF,
         puedeEliminarCosto: eliminarCos,

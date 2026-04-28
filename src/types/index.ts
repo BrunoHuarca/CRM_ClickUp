@@ -1,4 +1,4 @@
-export type EstadoFolio = 'Captación' | 'Comercial' | 'Legal' | 'Gerencia' | 'Marketing' | 'Publicado';
+export type EstadoFolio = 'Captación' | 'Comercial' | 'Legal' | 'Firma' | 'Gerencia' | 'Marketing' | 'Publicado';
 
 export type ScoreFolio = 'A' | 'B' | 'C';
 
@@ -72,14 +72,12 @@ export interface Folio {
   fechaCierre?: string;
   tiempoTotalProceso?: number;
   responsablePrincipal?: string;
-  categoria: 'A' | 'B' | 'C';
-  sede: string;
   readonly fechaCreacion: string;
 
   // DATOS DEL INMUEBLE
   tipoInmueble: TipoInmueble;
   metraje: number;
-  antiguedad: string | number;
+  antiguedad: number;
   partidaRegistral: string;
   precioEsperado: number;
   precioSugerido: number;
@@ -95,8 +93,8 @@ export interface Folio {
   propietarioNombre: string;
   propietarioDni: string;
   cantidadPropietarios: number;
-  propietarioContacto: string;
-  nivelDisposicion: string;
+  propietarioTelefono: string;
+  propietarioEmail: string;
   score: ScoreFolio;
 
   // OTRAS RELACIONES Y CAMPOS

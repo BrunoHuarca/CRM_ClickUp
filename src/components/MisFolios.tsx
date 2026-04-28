@@ -16,7 +16,7 @@ const MisFolios: FC = () => {
     if (isAdmin && verTodos) {
       return folios;
     }
-    return folios.filter((f) => f.responsable === usuario?.nombre);
+    return folios.filter((f) => f.responsable === usuario?.nombre || f.responsablePrincipal === usuario?.nombre);
   }, [folios, usuario, isAdmin, verTodos]);
 
   const formatDate = (fecha: string) => {

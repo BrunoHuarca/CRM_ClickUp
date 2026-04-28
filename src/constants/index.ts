@@ -26,6 +26,14 @@ export const COLUMNAS_KANBAN: ColumnaKanban[] = [
     iconColor: 'text-purple-500',
   },
   {
+    id: 'Firma',
+    titulo: 'Firma',
+    color: 'text-cyan-700',
+    bgColor: 'bg-cyan-50',
+    borderColor: 'border-cyan-300',
+    iconColor: 'text-cyan-500',
+  },
+  {
     id: 'Gerencia',
     titulo: 'Gerencia',
     color: 'text-rose-700',
@@ -111,6 +119,7 @@ export const TIEMPOS_MAXIMOS_ETAPA: Record<string, number> = {
   Captación: 72,   // 3 days
   Comercial: 120,  // 5 days
   Legal: 168,      // 7 days
+  Firma: 120,      // 5 days
   Gerencia: 120,   // 5 days
   Marketing: 168,  // 7 days
   Publicado: 240,  // 10 days
@@ -120,6 +129,7 @@ export const ETAPA_LABELS: Record<string, string> = {
   Captación: 'Captación',
   Comercial: 'Comercial',
   Legal: 'Legal',
+  Firma: 'Firma',
   Gerencia: 'Gerencia',
   Marketing: 'Marketing',
   Publicado: 'Publicado',
@@ -158,7 +168,7 @@ export interface Permisos {
 export const PERMISOS_POR_ROL: Record<string, Permisos> = {
   Admin: {
     vistas: ['misfolios', 'kanban', 'dashboard', 'agentes', 'usuarios', 'agenda'],
-    etapasVisibles: ['Captación', 'Comercial', 'Legal', 'Gerencia', 'Marketing', 'Publicado'],
+    etapasVisibles: ['Captación', 'Comercial', 'Legal', 'Firma', 'Gerencia', 'Marketing', 'Publicado'],
     puedeCrearFolio: true,
     puedeMoverFolio: true,
     puedeEliminarCosto: true,
@@ -167,7 +177,7 @@ export const PERMISOS_POR_ROL: Record<string, Permisos> = {
   },
   Comercial: {
     vistas: ['misfolios', 'kanban', 'dashboard', 'agentes', 'agenda', 'usuarios'],
-    etapasVisibles: ['Captación', 'Comercial', 'Legal', 'Gerencia', 'Marketing', 'Publicado'],
+    etapasVisibles: ['Captación', 'Comercial', 'Legal', 'Firma', 'Gerencia', 'Marketing', 'Publicado'],
     puedeCrearFolio: true,
     puedeMoverFolio: true,
     puedeEliminarCosto: false,

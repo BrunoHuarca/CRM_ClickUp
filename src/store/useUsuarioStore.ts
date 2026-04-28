@@ -149,8 +149,9 @@ export const useUsuarioStore = create<UsuarioStore>()(
         const { usuarios, initialized, permisosRoles } = get();
         const hasOldRoles = permisosRoles['Admin']?.etapasVisibles.includes('captacion');
         const missingMisfolios = !permisosRoles['Admin']?.vistas.includes('misfolios');
+        const missingFirma = !permisosRoles['Admin']?.etapasVisibles.includes('Firma');
         
-        if (!initialized || usuarios.length === 0 || hasOldRoles || missingMisfolios) {
+        if (!initialized || usuarios.length === 0 || hasOldRoles || missingMisfolios || missingFirma) {
           set({
             usuarios: usuarios.length === 0 ? usuariosEjemplo : usuarios,
             rolesConfig: DEFAULT_ROLES_CONFIG,

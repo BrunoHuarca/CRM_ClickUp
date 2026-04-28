@@ -1,6 +1,7 @@
 import { type FC, type FormEvent, useState } from 'react';
 import { useFolioStore } from '../store/useFolioStore';
 import { useUsuarioStore } from '../store/useUsuarioStore';
+import { useUsuarioActual } from '../hooks/usePermisos';
 import { TIPOS_INMUEBLE, AVATAR_GRADIENTS } from '../constants';
 import type { EstadoFolio, ScoreFolio, TipoInmueble } from '../types';
 import MapSelector from './MapSelector';
@@ -10,14 +11,13 @@ const CrearFolioModal: FC = () => {
   const cerrarModal = useFolioStore((s) => s.cerrarModal);
   const agregarFolio = useFolioStore((s) => s.agregarFolio);
   const usuarios = useUsuarioStore((s) => s.usuarios);
+  const usuarioActual = useUsuarioActual();
 
-  const agentes = usuarios.filter((u) => u.activo && (u.rol === 'Comercial' || u.rol === 'Admin' || u.rol === 'Call Center'));
+  const agentesComerciales = usuarios.filter((u) => u.activo && u.rol === 'Comercial');
 
   // DATOS GENERALES
   const [estado, setEstado] = useState<EstadoFolio>('Captación');
-  const [categoria, setCategoria] = useState<'A' | 'B' | 'C'>('B');
-  const [sede, setSede] = useState('Lima Central');
-  const [responsableId, setResponsableId] = useState(agentes[0]?.id || '');
+  const [responsableId, setResponsableId] = useState('');
 
   // DATOS DEL INMUEBLE
   const [tipoInmueble, setTipoInmueble] = useState<TipoInmueble>('Casa');
@@ -38,17 +38,15 @@ const CrearFolioModal: FC = () => {
   const [propietarioNombre, setPropietarioNombre] = useState('');
   const [propietarioDni, setPropietarioDni] = useState('');
   const [cantidadPropietarios, setCantidadPropietarios] = useState('1');
-  const [propietarioContacto, setPropietarioContacto] = useState('');
-  const [nivelDisposicion, setNivelDisposicion] = useState('Media');
+  const [propietarioTelefono, setPropietarioTelefono] = useState('');
+  const [propietarioEmail, setPropietarioEmail] = useState('');
   const [score, setScore] = useState<ScoreFolio>('B');
 
   const [activeTab, setActiveTab] = useState<'general' | 'inmueble' | 'propietario'>('general');
 
   const resetForm = () => {
     setEstado('Captación');
-    setCategoria('B');
-    setSede('Lima Central');
-    setResponsableId(agentes[0]?.id || '');
+    setResponsableId('');
 
     setTipoInmueble('Casa');
     setMetraje('');
@@ -67,8 +65,8 @@ const CrearFolioModal: FC = () => {
     setPropietarioNombre('');
     setPropietarioDni('');
     setCantidadPropietarios('1');
-    setPropietarioContacto('');
-    setNivelDisposicion('Media');
+    setPropietarioTelefono('');
+    setPropietarioEmail('');
     setScore('B');
 
     setActiveTab('general');
@@ -78,7 +76,6 @@ const CrearFolioModal: FC = () => {
     e.preventDefault();
     if (
       !propietarioNombre.trim() ||
-      !responsableId ||
       !metraje ||
       !precioEsperado ||
       latitud === '' ||
@@ -93,11 +90,9 @@ const CrearFolioModal: FC = () => {
 
     agregarFolio({
       estado,
-      categoria,
-      sede,
       tipoInmueble,
       metraje: Number(metraje),
-      antiguedad,
+      antiguedad: Number(antiguedad) || 0,
       partidaRegistral,
       precioEsperado: Number(precioEsperado),
       precioSugerido: Number(precioSugerido || precioEsperado),
@@ -111,14 +106,14 @@ const CrearFolioModal: FC = () => {
       propietarioNombre: propietarioNombre.trim(),
       propietarioDni: propietarioDni.trim(),
       cantidadPropietarios: Number(cantidadPropietarios),
-      propietarioContacto: propietarioContacto.trim(),
-      nivelDisposicion,
+      propietarioTelefono: propietarioTelefono.trim(),
+      propietarioEmail: propietarioEmail.trim(),
       score,
-      responsable: responsableNombre,
+      responsable: usuarioActual?.nombre || 'Desconocido',
       // hidden fields:
       fechaCierre: undefined,
       tiempoTotalProceso: undefined,
-      responsablePrincipal: undefined,
+      responsablePrincipal: responsableNombre,
     });
 
     resetForm();
@@ -181,47 +176,39 @@ const CrearFolioModal: FC = () => {
                   <label className="block text-xs font-semibold text-surface-600 mb-1.5 uppercase">Estado Inicial</label>
                   <select
                     value={estado}
-                    onChange={(e) => setEstado(e.target.value as EstadoFolio)}
                     disabled
                     className="w-full px-3 py-2.5 bg-surface-100 border border-surface-200 rounded-xl text-sm focus:outline-none focus:border-[#047D7D] transition-smooth cursor-not-allowed opacity-70"
                   >
                     <option value="Captación">Captación</option>
+                    <option value="Comercial">Comercial</option>
                   </select>
                 </div>
                 <div>
-                  <label className="block text-xs font-semibold text-surface-600 mb-1.5 uppercase">Categoría</label>
-                  <select
-                    value={categoria}
-                    onChange={(e) => setCategoria(e.target.value as any)}
-                    className="w-full px-3 py-2.5 bg-surface-50 border border-surface-200 rounded-xl text-sm focus:outline-none focus:border-[#047D7D] transition-smooth"
-                  >
-                    <option value="A">Categoría A</option>
-                    <option value="B">Categoría B</option>
-                    <option value="C">Categoría C</option>
-                  </select>
-                </div>
-                <div>
-                  <label className="block text-xs font-semibold text-surface-600 mb-1.5 uppercase">Sede</label>
+                  <label className="block text-xs font-semibold text-surface-600 mb-1.5 uppercase">Responsable de Registro</label>
                   <input
                     type="text"
-                    value={sede}
-                    onChange={(e) => setSede(e.target.value)}
-                    className="w-full px-3 py-2.5 bg-surface-50 border border-surface-200 rounded-xl text-sm focus:outline-none focus:border-[#047D7D] transition-smooth"
-                    required
+                    value={usuarioActual?.nombre || ''}
+                    disabled
+                    className="w-full px-3 py-2.5 bg-surface-100 border border-surface-200 rounded-xl text-sm focus:outline-none focus:border-[#047D7D] transition-smooth cursor-not-allowed opacity-70"
                   />
                 </div>
                 <div>
-                  <label className="block text-xs font-semibold text-surface-600 mb-1.5 uppercase">Responsable *</label>
+                  <label className="block text-xs font-semibold text-surface-600 mb-1.5 uppercase">Comercial Responsable *</label>
                   <div className="relative">
                     <select
                       value={responsableId}
-                      onChange={(e) => setResponsableId(e.target.value)}
-                      required
+                      onChange={(e) => {
+                        const val = e.target.value;
+                        setResponsableId(val);
+                        setEstado(val ? 'Comercial' : 'Captación');
+                      }}
+                      required={false}
                       className="w-full px-3 py-2.5 bg-surface-50 border border-surface-200 rounded-xl text-sm focus:outline-none focus:border-[#047D7D] transition-smooth pl-10"
                     >
-                      {agentes.map((u) => (
+                      <option value="">Seleccionar Comercial...</option>
+                      {agentesComerciales.map((u) => (
                         <option key={u.id} value={u.id}>
-                          {u.nombre} — {u.rol}
+                          {u.nombre}
                         </option>
                       ))}
                     </select>
@@ -236,6 +223,15 @@ const CrearFolioModal: FC = () => {
                       );
                     })()}
                   </div>
+                </div>
+                <div>
+                  <label className="block text-xs font-semibold text-surface-600 mb-1.5 uppercase">Fecha de Creación</label>
+                  <input
+                    type="text"
+                    value={new Date().toLocaleDateString()}
+                    disabled
+                    className="w-full px-3 py-2.5 bg-surface-100 border border-surface-200 rounded-xl text-sm focus:outline-none focus:border-[#047D7D] transition-smooth cursor-not-allowed opacity-70"
+                  />
                 </div>
               </div>
             </div>
@@ -266,12 +262,13 @@ const CrearFolioModal: FC = () => {
                   />
                 </div>
                 <div>
-                  <label className="block text-xs font-semibold text-surface-600 mb-1.5 uppercase">Antigüedad</label>
+                  <label className="block text-xs font-semibold text-surface-600 mb-1.5 uppercase">Antigüedad (Años)</label>
                   <input
-                    type="text"
+                    type="number"
+                    min="0"
                     value={antiguedad}
                     onChange={(e) => setAntiguedad(e.target.value)}
-                    placeholder="Ej. 5 años, Estreno"
+                    placeholder="0"
                     className="w-full px-3 py-2.5 bg-surface-50 border border-surface-200 rounded-xl text-sm focus:outline-none focus:border-[#047D7D] transition-smooth"
                   />
                 </div>
@@ -315,24 +312,44 @@ const CrearFolioModal: FC = () => {
                   />
                 </div>
                 <div>
-                  <label className="block text-xs font-semibold text-surface-600 mb-1.5 uppercase">Precio Esperado *</label>
-                  <input
-                    type="number"
-                    value={precioEsperado}
-                    onChange={(e) => setPrecioEsperado(e.target.value)}
-                    required
-                    className="w-full px-3 py-2.5 bg-surface-50 border border-surface-200 rounded-xl text-sm focus:outline-none focus:border-[#047D7D] transition-smooth"
-                  />
+                  <label className="block text-xs font-semibold text-surface-600 mb-1.5 uppercase">Precio Esperado (USD) *</label>
+                  <div className="relative">
+                    <span className="absolute left-3 top-1/2 -translate-y-1/2 text-surface-400 text-sm">$</span>
+                    <input
+                      type="number"
+                      value={precioEsperado}
+                      onChange={(e) => setPrecioEsperado(e.target.value)}
+                      required
+                      className="w-full pl-7 pr-3 py-2.5 bg-surface-50 border border-surface-200 rounded-xl text-sm focus:outline-none focus:border-[#047D7D] transition-smooth"
+                    />
+                  </div>
                 </div>
                 <div>
-                  <label className="block text-xs font-semibold text-surface-600 mb-1.5 uppercase">Precio Sugerido</label>
-                  <input
-                    type="number"
-                    value={precioSugerido}
-                    onChange={(e) => setPrecioSugerido(e.target.value)}
-                    className="w-full px-3 py-2.5 bg-surface-50 border border-surface-200 rounded-xl text-sm focus:outline-none focus:border-[#047D7D] transition-smooth"
-                  />
+                  <label className="block text-xs font-semibold text-surface-600 mb-1.5 uppercase">Precio Sugerido (USD)</label>
+                  <div className="relative">
+                    <span className="absolute left-3 top-1/2 -translate-y-1/2 text-surface-400 text-sm">$</span>
+                    <input
+                      type="number"
+                      value={precioSugerido}
+                      onChange={(e) => setPrecioSugerido(e.target.value)}
+                      className="w-full pl-7 pr-3 py-2.5 bg-surface-50 border border-surface-200 rounded-xl text-sm focus:outline-none focus:border-[#047D7D] transition-smooth"
+                    />
+                  </div>
                 </div>
+
+                <div>
+                  <label className="block text-xs font-semibold text-surface-600 mb-1.5 uppercase">Urgencia de Venta</label>
+                  <select
+                    value={urgenciaVenta}
+                    onChange={(e) => setUrgenciaVenta(e.target.value)}
+                    className="w-full px-3 py-2.5 bg-surface-50 border border-surface-200 rounded-xl text-sm focus:outline-none focus:border-[#047D7D] transition-smooth"
+                  >
+                    <option value="Alta">Alta</option>
+                    <option value="Media">Media</option>
+                    <option value="Baja">Baja</option>
+                  </select>
+                </div>
+
                 <div className="col-span-2">
                   <label className="block text-xs font-semibold text-surface-600 mb-1.5 uppercase">Ubicación (Haz clic en el mapa) *</label>
                   <MapSelector
@@ -376,11 +393,21 @@ const CrearFolioModal: FC = () => {
                   />
                 </div>
                 <div>
-                  <label className="block text-xs font-semibold text-surface-600 mb-1.5 uppercase">Contacto (Teléfono/Email)</label>
+                  <label className="block text-xs font-semibold text-surface-600 mb-1.5 uppercase">Teléfono Propietario *</label>
                   <input
-                    type="text"
-                    value={propietarioContacto}
-                    onChange={(e) => setPropietarioContacto(e.target.value)}
+                    type="tel"
+                    value={propietarioTelefono}
+                    onChange={(e) => setPropietarioTelefono(e.target.value)}
+                    required
+                    className="w-full px-3 py-2.5 bg-surface-50 border border-surface-200 rounded-xl text-sm focus:outline-none focus:border-[#047D7D] transition-smooth"
+                  />
+                </div>
+                <div>
+                  <label className="block text-xs font-semibold text-surface-600 mb-1.5 uppercase">Email Propietario</label>
+                  <input
+                    type="email"
+                    value={propietarioEmail}
+                    onChange={(e) => setPropietarioEmail(e.target.value)}
                     className="w-full px-3 py-2.5 bg-surface-50 border border-surface-200 rounded-xl text-sm focus:outline-none focus:border-[#047D7D] transition-smooth"
                   />
                 </div>
@@ -406,18 +433,7 @@ const CrearFolioModal: FC = () => {
                     className="w-full px-3 py-2.5 bg-surface-50 border border-surface-200 rounded-xl text-sm focus:outline-none focus:border-[#047D7D] transition-smooth"
                   />
                 </div>
-                <div>
-                  <label className="block text-xs font-semibold text-surface-600 mb-1.5 uppercase">Nivel de Disposición</label>
-                  <select
-                    value={nivelDisposicion}
-                    onChange={(e) => setNivelDisposicion(e.target.value)}
-                    className="w-full px-3 py-2.5 bg-surface-50 border border-surface-200 rounded-xl text-sm focus:outline-none focus:border-[#047D7D] transition-smooth"
-                  >
-                    <option value="Alta">Alta</option>
-                    <option value="Media">Media</option>
-                    <option value="Baja">Baja</option>
-                  </select>
-                </div>
+
                 <div>
                   <label className="block text-xs font-semibold text-surface-600 mb-1.5 uppercase">Score</label>
                   <div className="flex gap-2">
