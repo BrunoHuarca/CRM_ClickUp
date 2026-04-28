@@ -27,7 +27,8 @@ const ETAPA_COLORS: Record<EstadoFolio, string> = {
   Firma: '#06b6d4',
   Gerencia: '#10b981',
   Marketing: '#8b5cf6',
-  Publicado: '#64748b',
+  Publicado: '#10b981',
+  Cancelado: '#64748b',
 };
 
 const SCORE_COLORS: Record<ScoreFolio, string> = {

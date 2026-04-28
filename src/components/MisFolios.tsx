@@ -2,18 +2,8 @@ import { type FC, useState, useMemo } from 'react';
 import { useFolioStore } from '../store/useFolioStore';
 import { useUsuarioActual } from '../hooks/usePermisos';
 import { useFoliosFiltrados } from '../hooks/useFoliosFiltrados';
-import { SCORE_CONFIG } from '../constants';
+import { SCORE_CONFIG, ESTADOS_ORDER } from '../constants';
 import type { EstadoFolio } from '../types';
-
-const ESTADOS_ORDER: EstadoFolio[] = [
-  'Captación',
-  'Comercial',
-  'Legal',
-  'Firma',
-  'Gerencia',
-  'Marketing',
-  'Publicado',
-];
 
 const MisFolios: FC = () => {
   const foliosFiltrados = useFoliosFiltrados();
@@ -105,7 +95,7 @@ const MisFolios: FC = () => {
       {/* Header */}
       <div className="mb-6 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <h2 className="text-2xl font-bold text-surface-800">Mis Folios Asignados</h2>
+          <h2 className="text-2xl font-bold text-surface-800">Bandeja de Entrada</h2>
           <p className="text-sm text-surface-500 mt-1">
             Gestiona los folios según su etapa actual.
           </p>

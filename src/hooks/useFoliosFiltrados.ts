@@ -1,6 +1,7 @@
 import { useMemo } from 'react';
 import { useFolioStore } from '../store/useFolioStore';
 import { useUsuarioStore } from '../store/useUsuarioStore';
+import { ESTADOS_ORDER } from '../constants';
 
 export const useFoliosFiltrados = () => {
   const folios = useFolioStore((s) => s.folios);
@@ -22,21 +23,27 @@ export const useFoliosFiltrados = () => {
       }
 
       if (usuarioActual && usuarioActual.rol === 'Legal') {
-        const esSuEtapa = folio.estado === 'Legal';
+        const idxActual = ESTADOS_ORDER.indexOf(folio.estado as any);
+        const idxLegal = ESTADOS_ORDER.indexOf('Legal');
+        const esSuEtapaOPosterior = idxActual >= idxLegal;
         const esCreador = folio.responsable === usuarioActual.nombre;
-        if (!esSuEtapa && !esCreador) return false;
+        if (!esSuEtapaOPosterior && !esCreador) return false;
       }
 
       if (usuarioActual && usuarioActual.rol === 'Marketing') {
-        const esSuEtapa = folio.estado === 'Marketing';
+        const idxActual = ESTADOS_ORDER.indexOf(folio.estado as any);
+        const idxMkt = ESTADOS_ORDER.indexOf('Marketing');
+        const esSuEtapaOPosterior = idxActual >= idxMkt;
         const esCreador = folio.responsable === usuarioActual.nombre;
-        if (!esSuEtapa && !esCreador) return false;
+        if (!esSuEtapaOPosterior && !esCreador) return false;
       }
 
       if (usuarioActual && usuarioActual.rol === 'Gerencia') {
-        const esSuEtapa = folio.estado === 'Gerencia';
+        const idxActual = ESTADOS_ORDER.indexOf(folio.estado as any);
+        const idxGer = ESTADOS_ORDER.indexOf('Gerencia');
+        const esSuEtapaOPosterior = idxActual >= idxGer;
         const esCreador = folio.responsable === usuarioActual.nombre;
-        if (!esSuEtapa && !esCreador) return false;
+        if (!esSuEtapaOPosterior && !esCreador) return false;
       }
 
       if (usuarioActual && usuarioActual.rol === 'Call Center') {

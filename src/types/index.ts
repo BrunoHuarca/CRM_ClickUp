@@ -1,4 +1,4 @@
-export type EstadoFolio = 'Captación' | 'Comercial' | 'Legal' | 'Firma' | 'Gerencia' | 'Marketing' | 'Publicado';
+export type EstadoFolio = 'Captación' | 'Comercial' | 'Legal' | 'Firma' | 'Gerencia' | 'Marketing' | 'Publicado' | 'Cancelado';
 
 export type ScoreFolio = 'A' | 'B' | 'C';
 
@@ -101,6 +101,10 @@ export interface Folio {
   tasacion?: number;
   negociacionAceptada?: boolean;
   multimediaUrls?: string[];
+  estudioTitulos?: 'Apto' | 'Regularizar';
+  contratoExclusividadUrl?: string;
+  requiereSaneamiento?: boolean;
+  contratoFirmadoUrl?: string;
   
   // OTRAS RELACIONES Y CAMPOS
   direccion?: string;

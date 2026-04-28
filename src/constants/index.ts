@@ -57,7 +57,26 @@ export const COLUMNAS_KANBAN: ColumnaKanban[] = [
     borderColor: 'border-emerald-300',
     iconColor: 'text-emerald-500',
   },
+  {
+    id: 'Cancelado',
+    titulo: 'Cancelado',
+    color: 'text-slate-700',
+    bgColor: 'bg-slate-100',
+    borderColor: 'border-slate-300',
+    iconColor: 'text-slate-500',
+  },
 ];
+
+export const ESTADOS_ORDER = [
+  'Captación',
+  'Comercial',
+  'Legal',
+  'Firma',
+  'Gerencia',
+  'Marketing',
+  'Publicado',
+  'Cancelado',
+] as const;
 
 export const SCORE_CONFIG = {
   A: { label: 'Score A', color: 'bg-emerald-100 text-emerald-800 border-emerald-200', dotColor: 'bg-emerald-500' },
@@ -133,6 +152,7 @@ export const ETAPA_LABELS: Record<string, string> = {
   Gerencia: 'Gerencia',
   Marketing: 'Marketing',
   Publicado: 'Publicado',
+  Cancelado: 'Cancelado',
 };
 
 /* ========== RBAC CONFIG ========== */
@@ -170,7 +190,7 @@ export interface Permisos {
 export const PERMISOS_POR_ROL: Record<string, Permisos> = {
   Admin: {
     vistas: ['misfolios', 'kanban', 'dashboard', 'agentes', 'usuarios', 'agenda'],
-    etapasVisibles: ['Captación', 'Comercial', 'Legal', 'Firma', 'Gerencia', 'Marketing', 'Publicado'],
+    etapasVisibles: ['Captación', 'Comercial', 'Legal', 'Firma', 'Gerencia', 'Marketing', 'Publicado', 'Cancelado'],
     puedeCrearFolio: true,
     puedeMoverFolio: true,
     puedeEliminarCosto: true,
@@ -179,7 +199,7 @@ export const PERMISOS_POR_ROL: Record<string, Permisos> = {
   },
   Comercial: {
     vistas: ['misfolios', 'kanban', 'dashboard', 'agentes', 'agenda', 'usuarios'],
-    etapasVisibles: ['Captación', 'Comercial', 'Legal', 'Firma', 'Gerencia', 'Marketing', 'Publicado'],
+    etapasVisibles: ['Captación', 'Comercial', 'Legal', 'Firma', 'Gerencia', 'Marketing', 'Publicado', 'Cancelado'],
     puedeCrearFolio: true,
     puedeMoverFolio: true,
     puedeEliminarCosto: false,

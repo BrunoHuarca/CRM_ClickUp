@@ -89,6 +89,22 @@ const usuariosEjemplo: Usuario[] = [
     color: 'indigo',
     activo: true,
   },
+  {
+    id: 'user-008',
+    nombre: 'Ricardo Salcedo',
+    rol: 'Gerencia',
+    avatar: 'RS',
+    color: 'cyan',
+    activo: true,
+  },
+  {
+    id: 'user-009',
+    nombre: 'Elena Pardo',
+    rol: 'Marketing',
+    avatar: 'EP',
+    color: 'teal',
+    activo: true,
+  },
 ];
 
 const DEFAULT_PERMISOS: Permisos = DEFAULT_PERMISOS_POR_ROL['Admin'];
@@ -166,10 +182,12 @@ export const useUsuarioStore = create<UsuarioStore>()(
         const hasOldRoles = permisosRoles['Admin']?.etapasVisibles.includes('captacion');
         const missingMisfolios = !permisosRoles['Admin']?.vistas.includes('misfolios');
         const missingFirma = !permisosRoles['Admin']?.etapasVisibles.includes('Firma');
+        const missingCancelado = !permisosRoles['Admin']?.etapasVisibles.includes('Cancelado');
+        const missingMarketingUser = !usuarios.some(u => u.nombre === 'Elena Pardo');
         
-        if (!initialized || usuarios.length === 0 || hasOldRoles || missingMisfolios || missingFirma) {
+        if (!initialized || usuarios.length < 9 || hasOldRoles || missingMisfolios || missingFirma || missingCancelado || missingMarketingUser) {
           set({
-            usuarios: usuarios.length === 0 ? usuariosEjemplo : usuarios,
+            usuarios: (usuarios.length < 9 || missingMarketingUser) ? usuariosEjemplo : usuarios,
             rolesConfig: DEFAULT_ROLES_CONFIG,
             permisosRoles: DEFAULT_PERMISOS_POR_ROL,
             usuarioActualId: get().usuarioActualId || 'user-001',

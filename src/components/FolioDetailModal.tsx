@@ -344,17 +344,50 @@ const DetalleTabContent: FC<DetalleTabProps & { alertas: any[] }> = ({ folio, fo
           </div>
 
           <div>
-            <label className="block text-[10px] font-bold text-surface-500 uppercase mb-1.5">Multimedia (URLs separadas por coma) *</label>
-            <textarea
-              defaultValue={folio.multimediaUrls?.join(', ') || ''}
-              onBlur={(e) => {
-                const urls = e.target.value.split(',').map(u => u.trim()).filter(Boolean);
-                actualizarFolio(folio.id, { multimediaUrls: urls });
-              }}
-              rows={2}
-              className="w-full px-3 py-2 bg-white border border-surface-200 rounded-xl text-xs focus:outline-none focus:border-blue-500 transition-smooth resize-none"
-              placeholder="https://foto1.jpg, https://video.mp4"
-            />
+            <label className="block text-[10px] font-bold text-surface-500 uppercase mb-1.5">Multimedia (Fotos/Videos) *</label>
+            <div className="grid grid-cols-4 gap-2 mb-2">
+              {folio.multimediaUrls?.map((url, i) => (
+                <div key={i} className="relative aspect-square rounded-xl overflow-hidden border border-surface-200 group">
+                  {url.startsWith('data:video') ? (
+                    <div className="w-full h-full bg-slate-100 flex items-center justify-center text-xl">🎥</div>
+                  ) : (
+                    <img src={url} alt={`Media ${i}`} className="w-full h-full object-cover" />
+                  )}
+                  <button
+                    onClick={() => {
+                      const newUrls = folio.multimediaUrls?.filter((_, idx) => idx !== i);
+                      actualizarFolio(folio.id, { multimediaUrls: newUrls });
+                    }}
+                    className="absolute top-1 right-1 w-5 h-5 bg-red-500 text-white rounded-full flex items-center justify-center text-[10px] opacity-0 group-hover:opacity-100 transition-smooth"
+                  >
+                    ✕
+                  </button>
+                </div>
+              ))}
+              <label className="aspect-square rounded-xl border-2 border-dashed border-surface-200 flex flex-col items-center justify-center cursor-pointer hover:border-blue-400 hover:bg-blue-50 transition-smooth">
+                <input
+                  type="file"
+                  multiple
+                  accept="image/*,video/*"
+                  onChange={(e) => {
+                    const files = Array.from(e.target.files || []);
+                    files.forEach(file => {
+                      const reader = new FileReader();
+                      reader.onload = (event) => {
+                        const base64 = event.target?.result as string;
+                        const currentUrls = useFolioStore.getState().folios.find(f => f.id === folio.id)?.multimediaUrls || [];
+                        actualizarFolio(folio.id, { multimediaUrls: [...currentUrls, base64] });
+                      };
+                      reader.readAsDataURL(file);
+                    });
+                  }}
+                  className="hidden"
+                />
+                <span className="text-xl">➕</span>
+                <span className="text-[10px] font-bold text-surface-400">Añadir</span>
+              </label>
+            </div>
+            <p className="text-[9px] text-surface-400 italic">Puedes subir múltiples archivos de imagen o video.</p>
           </div>
 
           <div className="flex items-center justify-between bg-white p-3 rounded-xl border border-surface-200">
@@ -373,15 +406,29 @@ const DetalleTabContent: FC<DetalleTabProps & { alertas: any[] }> = ({ folio, fo
 
           <button
             onClick={() => {
-              if (!folio.tasacion || !folio.multimediaUrls?.length || !folio.negociacionAceptada) {
-                alert('Debes completar la tasación, cargar multimedia y confirmar la negociación para pasar a Legal.');
-                return;
+              if (folio.negociacionAceptada) {
+                if (!folio.tasacion || !folio.multimediaUrls?.length) {
+                  alert('Debes completar la tasación y cargar multimedia para pasar a Legal.');
+                  return;
+                }
+                moverFolio(folio.id, 'Legal');
+              } else {
+                if (confirm('¿Estás seguro de que deseas cancelar este folio? Esta acción lo moverá al estado de Cancelado.')) {
+                  moverFolio(folio.id, 'Cancelado');
+                }
               }
-              moverFolio(folio.id, 'Legal');
             }}
-            className="w-full bg-blue-600 hover:bg-blue-700 text-white py-2.5 rounded-xl text-xs font-bold transition-smooth shadow-lg shadow-blue-500/20 flex items-center justify-center gap-2"
+            className={`w-full py-2.5 rounded-xl text-xs font-bold transition-smooth shadow-lg flex items-center justify-center gap-2 ${
+              folio.negociacionAceptada
+                ? 'bg-blue-600 hover:bg-blue-700 text-white shadow-blue-500/20'
+                : 'bg-slate-600 hover:bg-slate-700 text-white shadow-slate-500/20'
+            }`}
           >
-            Pasar a Etapa Legal ⚖️
+            {folio.negociacionAceptada ? (
+              <>Pasar a Etapa Legal ⚖️</>
+            ) : (
+              <>Mover a Cancelados 🚫</>
+            )}
           </button>
         </div>
       )}
@@ -403,29 +450,309 @@ const DetalleTabContent: FC<DetalleTabProps & { alertas: any[] }> = ({ folio, fo
       {folio.multimediaUrls && folio.multimediaUrls.length > 0 && (
         <div className="space-y-2">
           <p className="text-[10px] text-surface-500 font-bold uppercase tracking-wider px-1">Material Multimedia</p>
-          <div className="flex gap-2 overflow-x-auto pb-2 scrollbar-thin">
-            {folio.multimediaUrls.map((url, i) => (
-              <div key={i} className="relative group shrink-0">
-                <div className="w-24 h-24 rounded-xl bg-surface-100 border border-surface-200 overflow-hidden flex items-center justify-center">
-                  {url.match(/\.(mp4|webm|ogg)$/) ? (
-                    <span className="text-2xl">🎥</span>
-                  ) : (
-                    <img src={url} alt={`Media ${i}`} className="w-full h-full object-cover" onError={(e) => {
-                      (e.target as any).src = 'https://via.placeholder.com/100?text=Error';
-                    }} />
-                  )}
+          <div className="flex gap-3 overflow-x-auto pb-2 scrollbar-thin">
+            {folio.multimediaUrls.map((url, i) => {
+              const isVideo = url.startsWith('data:video');
+              return (
+                <div key={i} className="relative group shrink-0">
+                  <div className="w-32 h-32 rounded-xl bg-surface-100 border border-surface-200 overflow-hidden flex items-center justify-center shadow-sm">
+                    {isVideo ? (
+                      <div className="flex flex-col items-center gap-1 text-surface-400">
+                        <span className="text-3xl">🎥</span>
+                        <span className="text-[8px] font-bold uppercase">Video</span>
+                      </div>
+                    ) : (
+                      <img src={url} alt={`Media ${i}`} className="w-full h-full object-cover" />
+                    )}
+                  </div>
+                  <button 
+                    onClick={() => {
+                      const win = window.open();
+                      win?.document.write(`
+                        <html>
+                          <body style="margin:0; background: #000; display:flex; align-items:center; justify-center; height:100vh;">
+                            ${isVideo ? 
+                              `<video src="${url}" controls style="max-width:100%; max-height:100%;"></video>` : 
+                              `<img src="${url}" style="max-width:100%; max-height:100%; object-fit:contain;" />`
+                            }
+                          </body>
+                        </html>
+                      `);
+                    }}
+                    className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-smooth flex items-center justify-center rounded-xl"
+                  >
+                    <span className="text-white text-[10px] font-bold bg-white/20 px-3 py-1 rounded-full backdrop-blur-md border border-white/30">Ampliar 🔍</span>
+                  </button>
                 </div>
-                <a 
-                  href={url} 
-                  target="_blank" 
-                  rel="noopener noreferrer"
-                  className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-smooth flex items-center justify-center rounded-xl"
-                >
-                  <span className="text-white text-[10px] font-bold">Ver</span>
-                </a>
-              </div>
-            ))}
+              );
+            })}
           </div>
+        </div>
+      )}
+
+      {/* Formulario de Transición - Legal -> Firma */}
+      {(usuarioActual?.rol === 'Legal' || usuarioActual?.rol === 'Admin') && folio.estado === 'Legal' && (
+        <div className="bg-amber-50 rounded-2xl p-5 border border-amber-200 space-y-4">
+          <div className="flex items-center gap-2 mb-2">
+            <span className="text-lg">⚖️</span>
+            <h4 className="text-sm font-bold text-amber-700 uppercase tracking-wider">Acciones Legales</h4>
+          </div>
+
+          <div className="grid grid-cols-2 gap-4">
+            <div>
+              <label className="block text-[10px] font-bold text-surface-500 uppercase mb-1.5">Estudio de Títulos *</label>
+              <div className="flex gap-1">
+                {(['Apto', 'Regularizar'] as const).map((opt) => (
+                  <button
+                    key={opt}
+                    onClick={() => actualizarFolio(folio.id, { estudioTitulos: opt })}
+                    className={`flex-1 py-1.5 rounded-lg text-xs font-bold transition-smooth ${
+                      folio.estudioTitulos === opt
+                        ? 'bg-amber-600 text-white'
+                        : 'bg-white text-surface-600 border border-surface-200 hover:bg-amber-50'
+                    }`}
+                  >
+                    {opt}
+                  </button>
+                ))}
+              </div>
+            </div>
+            <div>
+              <label className="block text-[10px] font-bold text-surface-500 uppercase mb-1.5">¿Requiere Saneamiento? *</label>
+              <div className="flex gap-1">
+                {[true, false].map((val) => (
+                  <button
+                    key={String(val)}
+                    onClick={() => actualizarFolio(folio.id, { requiereSaneamiento: val })}
+                    className={`flex-1 py-1.5 rounded-lg text-xs font-bold transition-smooth ${
+                      folio.requiereSaneamiento === val
+                        ? 'bg-amber-600 text-white'
+                        : 'bg-white text-surface-600 border border-surface-200 hover:bg-amber-50'
+                    }`}
+                  >
+                    {val ? 'Sí' : 'No'}
+                  </button>
+                ))}
+              </div>
+            </div>
+          </div>
+
+          <div>
+            <label className="block text-[10px] font-bold text-surface-500 uppercase mb-1.5">Subir Contrato de Exclusividad (PDF) *</label>
+            <div className="relative">
+              <input
+                type="file"
+                accept=".pdf"
+                onChange={(e) => {
+                  const file = e.target.files?.[0];
+                  if (file) {
+                    if (file.type !== 'application/pdf') {
+                      alert('Por favor, sube solo archivos PDF.');
+                      return;
+                    }
+                    const reader = new FileReader();
+                    reader.onload = (event) => {
+                      const base64 = event.target?.result as string;
+                      actualizarFolio(folio.id, { contratoExclusividadUrl: base64 });
+                    };
+                    reader.readAsDataURL(file);
+                  }
+                }}
+                className="hidden"
+                id="upload-exclusividad"
+              />
+              <label
+                htmlFor="upload-exclusividad"
+                className={`w-full flex items-center justify-center gap-2 px-4 py-3 border-2 border-dashed rounded-xl cursor-pointer transition-smooth ${
+                  folio.contratoExclusividadUrl
+                    ? 'bg-amber-50 border-amber-300 text-amber-700'
+                    : 'bg-white border-surface-200 text-surface-500 hover:border-amber-400 hover:bg-amber-50'
+                }`}
+              >
+                {folio.contratoExclusividadUrl ? (
+                  <>
+                    <span className="text-lg">📄</span>
+                    <span className="text-xs font-bold truncate max-w-[200px]">
+                      Exclusividad.pdf
+                    </span>
+                    <button 
+                      onClick={(e) => {
+                        e.preventDefault();
+                        actualizarFolio(folio.id, { contratoExclusividadUrl: undefined });
+                      }}
+                      className="ml-2 p-1 hover:bg-amber-200 rounded-full transition-smooth"
+                    >
+                      ✕
+                    </button>
+                  </>
+                ) : (
+                  <>
+                    <span className="text-lg">📤</span>
+                    <span className="text-xs font-bold">Seleccionar archivo PDF</span>
+                  </>
+                )}
+              </label>
+            </div>
+          </div>
+
+          <button
+            onClick={() => {
+              if (!folio.estudioTitulos || !folio.contratoExclusividadUrl || folio.requiereSaneamiento === undefined) {
+                alert('Debes completar el estudio de títulos, el contrato de exclusividad y el saneamiento.');
+                return;
+              }
+              moverFolio(folio.id, 'Firma');
+            }}
+            className="w-full bg-amber-600 hover:bg-amber-700 text-white py-2.5 rounded-xl text-xs font-bold transition-smooth shadow-lg shadow-amber-500/20 flex items-center justify-center gap-2"
+          >
+            Pasar a Etapa de Firma 🖋️
+          </button>
+        </div>
+      )}
+
+      {/* Mostrar Datos Legales si existen */}
+      {(folio.estudioTitulos || folio.contratoExclusividadUrl) && (
+        <div className="bg-amber-50/50 rounded-xl p-4 border border-amber-100 space-y-3">
+          <p className="text-[10px] text-amber-600 font-bold uppercase tracking-wider">Estado Legal</p>
+          <div className="flex flex-wrap gap-3">
+            {folio.estudioTitulos && (
+              <div className="flex items-center gap-1.5 bg-white px-2.5 py-1 rounded-lg border border-amber-200">
+                <span className="text-[10px] font-semibold text-surface-500">Títulos:</span>
+                <span className={`text-[10px] font-bold ${folio.estudioTitulos === 'Apto' ? 'text-emerald-600' : 'text-amber-600'}`}>
+                  {folio.estudioTitulos}
+                </span>
+              </div>
+            )}
+            {folio.requiereSaneamiento !== undefined && (
+              <div className="flex items-center gap-1.5 bg-white px-2.5 py-1 rounded-lg border border-amber-200">
+                <span className="text-[10px] font-semibold text-surface-500">Saneamiento:</span>
+                <span className="text-[10px] font-bold text-surface-700">
+                  {folio.requiereSaneamiento ? 'Requerido' : 'No Requerido'}
+                </span>
+              </div>
+            )}
+            {folio.contratoExclusividadUrl && (
+              <button 
+                onClick={() => {
+                  const link = document.createElement('a');
+                  link.href = folio.contratoExclusividadUrl!;
+                  link.download = 'Contrato_Exclusividad.pdf';
+                  link.click();
+                }}
+                className="flex items-center gap-1.5 bg-amber-600 text-white px-3 py-1 rounded-lg hover:bg-amber-700 transition-smooth shadow-sm"
+              >
+                <span className="text-[10px] font-bold italic">📄 Descargar Exclusividad</span>
+              </button>
+            )}
+          </div>
+        </div>
+      )}
+
+      {/* Formulario de Transición - Firma -> Gerencia */}
+      {(usuarioActual?.rol === 'Comercial' || usuarioActual?.rol === 'Admin') && folio.estado === 'Firma' && (
+        <div className="bg-cyan-50 rounded-2xl p-5 border border-cyan-200 space-y-4">
+          <div className="flex items-center gap-2 mb-2">
+            <span className="text-lg">🖋️</span>
+            <h4 className="text-sm font-bold text-cyan-700 uppercase tracking-wider">Formalización de Contrato</h4>
+          </div>
+
+          <div>
+            <label className="block text-[10px] font-bold text-surface-500 uppercase mb-1.5">Subir Contrato Firmado (PDF) *</label>
+            <div className="relative">
+              <input
+                type="file"
+                accept=".pdf"
+                onChange={(e) => {
+                  const file = e.target.files?.[0];
+                  if (file) {
+                    if (file.type !== 'application/pdf') {
+                      alert('Por favor, sube solo archivos PDF.');
+                      return;
+                    }
+                    
+                    const reader = new FileReader();
+                    reader.onload = (event) => {
+                      const base64 = event.target?.result as string;
+                      // Guardamos el nombre del archivo metadato + base64
+                      actualizarFolio(folio.id, { contratoFirmadoUrl: base64 });
+                    };
+                    reader.readAsDataURL(file);
+                  }
+                }}
+                className="hidden"
+                id="upload-contrato"
+              />
+              <label
+                htmlFor="upload-contrato"
+                className={`w-full flex items-center justify-center gap-2 px-4 py-3 border-2 border-dashed rounded-xl cursor-pointer transition-smooth ${
+                  folio.contratoFirmadoUrl
+                    ? 'bg-emerald-50 border-emerald-300 text-emerald-700'
+                    : 'bg-white border-surface-200 text-surface-500 hover:border-cyan-400 hover:bg-cyan-50'
+                }`}
+              >
+                {folio.contratoFirmadoUrl ? (
+                  <>
+                    <span className="text-lg">📄</span>
+                    <span className="text-xs font-bold truncate max-w-[200px]">
+                      Contrato_Firmado.pdf
+                    </span>
+                    <button 
+                      onClick={(e) => {
+                        e.preventDefault();
+                        actualizarFolio(folio.id, { contratoFirmadoUrl: undefined });
+                      }}
+                      className="ml-2 p-1 hover:bg-emerald-200 rounded-full transition-smooth"
+                    >
+                      ✕
+                    </button>
+                  </>
+                ) : (
+                  <>
+                    <span className="text-lg">📤</span>
+                    <span className="text-xs font-bold">Seleccionar archivo PDF</span>
+                  </>
+                )}
+              </label>
+            </div>
+          </div>
+
+          <button
+            onClick={() => {
+              if (!folio.contratoFirmadoUrl) {
+                alert('Debes adjuntar el contrato firmado para proceder.');
+                return;
+              }
+              moverFolio(folio.id, 'Gerencia');
+            }}
+            className="w-full bg-cyan-600 hover:bg-cyan-700 text-white py-2.5 rounded-xl text-xs font-bold transition-smooth shadow-lg shadow-cyan-500/20 flex items-center justify-center gap-2"
+          >
+            Enviar a Aprobación de Gerencia 🚀
+          </button>
+        </div>
+      )}
+
+      {/* Mostrar Contrato Firmado si existe */}
+      {folio.contratoFirmadoUrl && (
+        <div className="bg-cyan-50/50 rounded-xl p-4 border border-cyan-100 flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            <span className="text-xl">✍️</span>
+            <div>
+              <p className="text-[10px] text-cyan-600 font-bold uppercase tracking-wider">Documento de Cierre</p>
+              <p className="text-xs font-bold text-cyan-900">Contrato Firmado Registrado</p>
+            </div>
+          </div>
+          <button 
+            onClick={() => {
+              const link = document.createElement('a');
+              link.href = folio.contratoFirmadoUrl!;
+              link.target = '_blank';
+              link.download = 'Contrato_Firmado.pdf';
+              link.click();
+            }}
+            className="bg-cyan-600 text-white px-4 py-1.5 rounded-lg text-[10px] font-bold uppercase hover:bg-cyan-700 transition-smooth"
+          >
+            Ver / Descargar PDF
+          </button>
         </div>
       )}
 

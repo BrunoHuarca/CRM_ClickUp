@@ -31,11 +31,21 @@ const LocationMarker = ({ position, setPosition, onSelect }: any) => {
 
 const MapUpdater = ({ center }: { center: L.LatLng | null }) => {
   const map = useMap();
+  
+  useEffect(() => {
+    // Forzar el redibujado del mapa al montar para evitar cuadros grises
+    const timer = setTimeout(() => {
+      map.invalidateSize();
+    }, 400);
+    return () => clearTimeout(timer);
+  }, [map]);
+
   useEffect(() => {
     if (center) {
       map.flyTo(center, 15);
     }
   }, [center, map]);
+
   return null;
 };
 
