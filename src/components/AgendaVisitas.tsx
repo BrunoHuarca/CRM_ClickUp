@@ -1,73 +1,106 @@
 import { type FC, useMemo, useState } from 'react';
 import { useFolioStore } from '../store/useFolioStore';
+import { useUsuarioStore } from '../store/useUsuarioStore';
 import { SCORE_CONFIG } from '../constants';
 import FiltrosGlobales from './FiltrosGlobales';
 
 const AgendaVisitas: FC = () => {
   const folios = useFolioStore((s) => s.folios);
   const abrirDetalle = useFolioStore((s) => s.abrirDetalle);
-  const [filtroAgente, setFiltroAgente] = useState<string>('');
+  const usuarioActual = useUsuarioStore((s) => s.getUsuarioActual());
+  const [filtroAgente, setFiltroAgente] = useState<string>(() => {
+    if (usuarioActual?.rol === 'Admin' || usuarioActual?.rol === 'Gerencia') return '';
+    return usuarioActual?.nombre || '';
+  });
+  const [filtroFecha, setFiltroFecha] = useState<string>(() => {
+    const d = new Date();
+    return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+  });
 
-  // Extraer todas las visitas de todos los folios y ordenarlas cronológicamente
+  // Extraer las visitas programadas de los folios en estado Comercial
   const visitas = useMemo(() => {
-    const allVisits = folios.flatMap((folio) =>
-      folio.actividades
-        .filter((act) => act.tipo === 'Visita')
-        .map((act) => ({
-          ...act,
-          folioId: folio.id,
-          score: folio.score,
-        }))
-    );
-
-    // Ordenar de más reciente a más antigua o futura a pasada. Mejor orden cronológico (futuro a pasado o pasado a futuro)
-    // El prompt pide listar todas las del mes ordenadas: vamos a ordenarlas por fecha y hora
-    return allVisits.sort((a, b) => {
-      const dateA = new Date(`${a.fecha.split('T')[0]}T${a.horaInicio || '00:00'}`);
-      const dateB = new Date(`${b.fecha.split('T')[0]}T${b.horaInicio || '00:00'}`);
-      return dateA.getTime() - dateB.getTime();
-    });
+    return folios
+      .filter((f) => f.estado === 'Comercial' && f.visitaProgramada)
+      .map((f) => {
+        const dateObj = new Date(f.visitaProgramada);
+        return {
+          id: `pv-${f.id}`,
+          folioId: f.id,
+          tipo: 'Visita',
+          fecha: f.visitaProgramada,
+          horaInicio: dateObj.toLocaleTimeString('es-PE', { hour: '2-digit', minute: '2-digit', hour12: false }),
+          horaFin: '',
+          responsable: f.responsablePrincipal || 'Sin asignar',
+          score: f.score || 'C',
+          direccion: f.direccion,
+        };
+      })
+      .sort((a, b) => {
+        const dateA = new Date(a.fecha);
+        const dateB = new Date(b.fecha);
+        return dateA.getTime() - dateB.getTime();
+      });
   }, [folios]);
 
-  // Extraer lista única de agentes programados para el <select>
-  const agentesUnicos = useMemo(() => {
-    return Array.from(new Set(visitas.map((v) => v.responsable))).sort();
-  }, [visitas]);
+  // Extraer lista de comerciales para el <select>
+  const usuarios = useUsuarioStore((s) => s.usuarios);
+  const comerciales = useMemo(() => {
+    return usuarios
+      .filter((u) => u.rol === 'Comercial' && u.activo)
+      .map((u) => u.nombre)
+      .sort();
+  }, [usuarios]);
 
-  // Aplicar filtro si existe
+  // Aplicar filtros
   const visitasFiltradas = useMemo(() => {
-    if (!filtroAgente) return visitas;
-    return visitas.filter((v) => v.responsable === filtroAgente);
-  }, [visitas, filtroAgente]);
+    return visitas.filter((v) => {
+      const matchAgente = !filtroAgente || v.responsable === filtroAgente;
+      const matchFecha = !filtroFecha || v.fecha.startsWith(filtroFecha);
+      return matchAgente && matchFecha;
+    });
+  }, [visitas, filtroAgente, filtroFecha]);
 
   return (
     <div className="p-6 max-w-5xl mx-auto h-full flex flex-col">
       <div className="mb-6">
         <h2 className="text-2xl font-bold text-surface-800">Agenda de Visitas</h2>
         <p className="text-sm text-surface-500 mt-1 mb-4">
-          Visualiza todas las visitas programadas para los folios
+          Visualiza las visitas programadas y gestiona tu agenda diaria
         </p>
-        <FiltrosGlobales />
       </div>
 
       <div className="bg-white rounded-2xl border border-surface-200 shadow-sm flex-1 overflow-hidden flex flex-col">
         <div className="p-4 border-b border-surface-200 bg-surface-50 flex items-center justify-between">
           <h3 className="font-semibold text-surface-700">Cronograma</h3>
           
-          <div className="flex items-center gap-2">
-            <span className="text-xs text-surface-500 font-medium whitespace-nowrap">Filtrar por Agente:</span>
-            <select
-              value={filtroAgente}
-              onChange={(e) => setFiltroAgente(e.target.value)}
-              className="bg-white border border-surface-200 text-xs px-3 py-1.5 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 text-surface-700 font-medium"
-            >
-              <option value="">Todos los Agentes</option>
-              {agentesUnicos.map((agente) => (
-                <option key={agente} value={agente}>
-                  {agente}
-                </option>
-              ))}
-            </select>
+          <div className="flex items-center gap-4">
+            <div className="flex items-center gap-2">
+              <span className="text-xs text-surface-500 font-medium whitespace-nowrap">Fecha:</span>
+              <input
+                type="date"
+                value={filtroFecha}
+                onChange={(e) => setFiltroFecha(e.target.value)}
+                className="bg-white border border-surface-200 text-xs px-3 py-1.5 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 text-surface-700 font-medium"
+              />
+            </div>
+
+            {(usuarioActual?.rol === 'Admin' || usuarioActual?.rol === 'Gerencia') && (
+              <div className="flex items-center gap-2">
+                <span className="text-xs text-surface-500 font-medium whitespace-nowrap">Agente:</span>
+                <select
+                  value={filtroAgente}
+                  onChange={(e) => setFiltroAgente(e.target.value)}
+                  className="bg-white border border-surface-200 text-xs px-3 py-1.5 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 text-surface-700 font-medium"
+                >
+                  <option value="">Todos</option>
+                  {comerciales.map((agente) => (
+                    <option key={agente} value={agente}>
+                      {agente}
+                    </option>
+                  ))}
+                </select>
+              </div>
+            )}
           </div>
         </div>
         
@@ -88,7 +121,7 @@ const AgendaVisitas: FC = () => {
                     
                     <div 
                       className="bg-white border border-surface-200 rounded-xl p-4 hover:shadow-md transition-smooth cursor-pointer"
-                      onClick={() => abrirDetalle(visita.folioId)}
+                      onClick={() => abrirDetalle(visita.folioId, true)}
                     >
                       <div className="flex justify-between items-start mb-2">
                         <div className="flex items-center gap-3">
@@ -103,9 +136,9 @@ const AgendaVisitas: FC = () => {
                                 day: '2-digit',
                                 month: 'long',
                               })}
-                              {visita.horaInicio && visita.horaFin && (
+                              {visita.horaInicio && (
                                 <span className="ml-1 text-primary-600 font-semibold bg-primary-50 px-1.5 py-0.5 rounded">
-                                  {visita.horaInicio} - {visita.horaFin}
+                                  {visita.horaInicio}{visita.horaFin ? ` - ${visita.horaFin}` : ''}
                                 </span>
                               )}
                             </p>
@@ -116,6 +149,12 @@ const AgendaVisitas: FC = () => {
                           {visita.score}
                         </span>
                       </div>
+
+                      {visita.direccion && (
+                        <p className="mt-2 text-[10px] text-surface-500 flex items-center gap-1">
+                          <span>📍</span> {visita.direccion}
+                        </p>
+                      )}
 
                       <div className="mt-3 flex items-center justify-between">
                         <div className="flex items-center gap-1.5">

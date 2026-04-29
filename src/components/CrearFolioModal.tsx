@@ -33,6 +33,7 @@ const CrearFolioModal: FC = () => {
   const [distrito, setDistrito] = useState('');
   const [latitud, setLatitud] = useState<number | ''>('');
   const [longitud, setLongitud] = useState<number | ''>('');
+  const [direccion, setDireccion] = useState('');
 
   // DATOS DEL PROPIETARIO
   const [origen, setOrigen] = useState<'Meta' | 'Orgánico' | 'Referido'>('Orgánico');
@@ -63,6 +64,7 @@ const CrearFolioModal: FC = () => {
     setDistrito('');
     setLatitud('');
     setLongitud('');
+    setDireccion('');
 
     setOrigen('Orgánico');
     setPropietarioNombre('');
@@ -106,6 +108,7 @@ const CrearFolioModal: FC = () => {
       distrito: distrito.trim(),
       latitud: Number(latitud),
       longitud: Number(longitud),
+      direccion: direccion.trim(),
       origen,
       propietarioNombre: propietarioNombre.trim(),
       propietarioDni: propietarioDni.trim(),
@@ -126,16 +129,20 @@ const CrearFolioModal: FC = () => {
     cerrarModal();
   };
 
-  if (!modalAbierto) return null;
+  // Eliminamos el early return para mantener el componente montado (optimización del mapa)
 
   return (
     <div
-      className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm animate-fade-in py-8"
+      className={`fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm transition-all duration-300 py-8 ${
+        modalAbierto ? 'opacity-100 pointer-events-auto visible' : 'opacity-0 pointer-events-none invisible'
+      }`}
       onClick={(e) => {
         if (e.target === e.currentTarget) cerrarModal();
       }}
     >
-      <div className="bg-white rounded-2xl shadow-2xl w-full max-w-4xl mx-4 animate-scale-in flex flex-col max-h-full">
+      <div className={`bg-white rounded-2xl shadow-2xl w-full max-w-4xl mx-4 transition-transform duration-300 flex flex-col max-h-full ${
+        modalAbierto ? 'scale-100' : 'scale-95'
+      }`}>
         {/* Header */}
         <div className="bg-[#047D7D] px-6 py-5 shrink-0 rounded-t-2xl">
           <div className="flex items-center justify-between">
@@ -326,6 +333,16 @@ const CrearFolioModal: FC = () => {
                     className="w-full px-3 py-2.5 bg-surface-50 border border-surface-200 rounded-xl text-sm focus:outline-none focus:border-[#047D7D] transition-smooth"
                   />
                 </div>
+                <div className="col-span-2">
+                  <label className="block text-xs font-semibold text-surface-600 mb-1.5 uppercase">Dirección Exacta</label>
+                  <input
+                    type="text"
+                    value={direccion}
+                    onChange={(e) => setDireccion(e.target.value)}
+                    placeholder="Ej. Av. Larco 123, Dpto 402"
+                    className="w-full px-3 py-2.5 bg-surface-50 border border-surface-200 rounded-xl text-sm focus:outline-none focus:border-[#047D7D] transition-smooth"
+                  />
+                </div>
                 <div>
                   <label className="block text-xs font-semibold text-surface-600 mb-1.5 uppercase">Precio Esperado (USD) *</label>
                   <div className="relative">
@@ -374,6 +391,7 @@ const CrearFolioModal: FC = () => {
                       setLatitud(lat);
                       setLongitud(lng);
                     }}
+                    forceRefresh={modalAbierto && activeTab === 'inmueble'}
                   />
                   {latitud !== '' && longitud !== '' && (
                     <p className="text-xs text-surface-500 mt-2">

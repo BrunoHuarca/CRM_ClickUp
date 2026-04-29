@@ -1,7 +1,7 @@
 import { type FC, type FormEvent, useState } from 'react';
 import { useUsuarioStore } from '../store/useUsuarioStore';
-import { AVATAR_GRADIENTS } from '../constants';
-import type { RolUsuario, VistaActiva } from '../types';
+import { AVATAR_GRADIENTS, ESTADOS_ORDER } from '../constants';
+import type { RolUsuario, VistaActiva, EstadoFolio } from '../types';
 
 const COLORES = Object.keys(AVATAR_GRADIENTS);
 
@@ -30,6 +30,7 @@ const ConfigUsuarios: FC = () => {
   const [moverF, setMoverF] = useState(false);
   const [eliminarCos, setEliminarCos] = useState(false);
   const [verRent, setVerRent] = useState(false);
+  const [etapasSeleccionadas, setEtapasSeleccionadas] = useState<EstadoFolio[]>([...ESTADOS_ORDER]);
 
   const usuarioActual = useUsuarioStore((s) => s.getUsuarioActual());
   const lsRoles = Object.keys(rolesConfig);
@@ -64,7 +65,7 @@ const ConfigUsuarios: FC = () => {
       },
       {
         vistas: vistasSeleccionadas,
-        etapasVisibles: ['Captación', 'Comercial', 'Legal', 'Firma', 'Gerencia', 'Marketing', 'Publicado'],
+        etapasVisibles: etapasSeleccionadas,
         puedeCrearFolio: crearF,
         puedeMoverFolio: moverF,
         puedeEliminarCosto: eliminarCos,
@@ -95,6 +96,7 @@ const ConfigUsuarios: FC = () => {
     setMoverF(pRoles.puedeMoverFolio);
     setEliminarCos(pRoles.puedeEliminarCosto);
     setVerRent(pRoles.puedeVerRentabilidad || false);
+    setEtapasSeleccionadas(pRoles.etapasVisibles as EstadoFolio[]);
     
     setFormRolAbierto(true);
   };
@@ -384,7 +386,7 @@ const ConfigUsuarios: FC = () => {
                 </div>
               </div>
 
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
                 <div>
                   <h4 className="text-xs font-bold text-surface-700 mb-3 border-b border-surface-200 pb-2">Vistas Permitidas</h4>
                   <div className="space-y-2">
@@ -418,6 +420,26 @@ const ConfigUsuarios: FC = () => {
                       <input type="checkbox" checked={eliminarCos} onChange={e => setEliminarCos(e.target.checked)} className="w-4 h-4 rounded flex-shrink-0 text-red-500 focus:ring-red-500" />
                       <span className="text-sm font-medium text-surface-600">Eliminar costos sensibles</span>
                     </label>
+                  </div>
+                </div>
+                <div>
+                  <h4 className="text-xs font-bold text-surface-700 mb-3 border-b border-surface-200 pb-2">Etapas Kanban Visibles</h4>
+                  <div className="grid grid-cols-1 gap-2">
+                    {ESTADOS_ORDER.map(e => (
+                      <label key={e} className="flex items-center gap-2 cursor-pointer">
+                        <input
+                          type="checkbox"
+                          checked={etapasSeleccionadas.includes(e)}
+                          onChange={() => {
+                            setEtapasSeleccionadas(prev => 
+                              prev.includes(e) ? prev.filter(item => item !== e) : [...prev, e]
+                            );
+                          }}
+                          className="w-4 h-4 rounded text-primary-600 focus:ring-primary-500"
+                        />
+                        <span className="text-sm font-medium text-surface-600">{e}</span>
+                      </label>
+                    ))}
                   </div>
                 </div>
               </div>

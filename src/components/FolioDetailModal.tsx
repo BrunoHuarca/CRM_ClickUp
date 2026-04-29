@@ -17,6 +17,7 @@ type TabActiva = 'detalle' | 'timeline' | 'costos';
 
 const FolioDetailModal: FC = () => {
   const folioDetalleId = useFolioStore((s) => s.folioDetalleId);
+  const isReadOnly = useFolioStore((s) => s.isReadOnly);
   const folios = useFolioStore((s) => s.folios);
   const cerrarDetalle = useFolioStore((s) => s.cerrarDetalle);
   const agregarActividad = useFolioStore((s) => s.agregarActividad);
@@ -135,6 +136,7 @@ const FolioDetailModal: FC = () => {
               formatCurrency={formatCurrency}
               totalCostos={totalCostos}
               utilidad={utilidad}
+              isReadOnly={isReadOnly}
             />
           )}
           {tabActiva === 'timeline' && (
@@ -143,6 +145,7 @@ const FolioDetailModal: FC = () => {
               actividades={folio.actividades}
               agregarActividad={agregarActividad}
               eliminarActividad={eliminarActividad}
+              isReadOnly={isReadOnly}
             />
           )}
           {tabActiva === 'costos' && (
@@ -155,7 +158,8 @@ const FolioDetailModal: FC = () => {
               totalCostos={totalCostos}
               precioVenta={folio.precioEsperado || 0}
               utilidad={utilidad}
-              canDeleteCost={permisos.puedeEliminarCosto}
+              canDeleteCost={permisos.puedeEliminarCosto && !isReadOnly}
+              isReadOnly={isReadOnly}
             />
           )}
         </div>
@@ -170,14 +174,15 @@ interface DetalleTabProps {
   formatCurrency: (val: number) => string;
   totalCostos: number;
   utilidad: number;
+  isReadOnly?: boolean;
 }
 
-const DetalleTab: FC<DetalleTabProps> = ({ folio, formatCurrency, totalCostos, utilidad }) => {
+const DetalleTab: FC<DetalleTabProps> = ({ folio, formatCurrency, totalCostos, utilidad, isReadOnly }) => {
   const alertas = useAlertasFolio(folio);
-  return <DetalleTabContent folio={folio} formatCurrency={formatCurrency} totalCostos={totalCostos} utilidad={utilidad} alertas={alertas} />;
+  return <DetalleTabContent folio={folio} formatCurrency={formatCurrency} totalCostos={totalCostos} utilidad={utilidad} alertas={alertas} isReadOnly={isReadOnly} />;
 };
 
-const DetalleTabContent: FC<DetalleTabProps & { alertas: any[] }> = ({ folio, formatCurrency, totalCostos, utilidad, alertas }) => {
+const DetalleTabContent: FC<DetalleTabProps & { alertas: any[]; isReadOnly?: boolean }> = ({ folio, formatCurrency, totalCostos, utilidad, alertas, isReadOnly }) => {
   const actualizarFolio = useFolioStore((s) => s.actualizarFolio);
   const moverFolio = useFolioStore((s) => s.moverFolio);
   const usuarios = useUsuarioStore((s) => s.usuarios);
@@ -186,6 +191,14 @@ const DetalleTabContent: FC<DetalleTabProps & { alertas: any[] }> = ({ folio, fo
   const [comercialId, setComercialId] = useState('');
   const [fechaVisita, setFechaVisita] = useState(folio.visitaProgramada || '');
   const [procesando, setProcesando] = useState(false);
+  const [segmentacion, setSegmentacion] = useState(folio.segmentacionAdecuada || '');
+  const [inversion, setInversion] = useState(folio.inversionPautaAdecuada?.toString() || '');
+  const [duracion, setDuracion] = useState(folio.duracionPublicacion || '');
+  const [fbUrl, setFbUrl] = useState(folio.facebookUrl || '');
+  const [tkUrl, setTkUrl] = useState(folio.tiktokUrl || '');
+  const [igUrl, setIgUrl] = useState(folio.instagramUrl || '');
+  const [wbUrl, setWbUrl] = useState(folio.webUrl || '');
+  const [otUrl, setOtUrl] = useState(folio.otrosUrl || '');
 
   const agentesComerciales = usuarios.filter((u) => u.rol === 'Comercial' && u.activo);
   
@@ -241,7 +254,7 @@ const DetalleTabContent: FC<DetalleTabProps & { alertas: any[] }> = ({ folio, fo
       </div>
 
       {/* Formulario de Transición - Call Center -> Comercial */}
-      {(usuarioActual?.rol === 'Call Center' || usuarioActual?.rol === 'Admin') && folio.estado === 'Captación' && (
+      {!isReadOnly && (usuarioActual?.rol === 'Call Center' || usuarioActual?.rol === 'Admin') && folio.estado === 'Captación' && (
         <div className="bg-[#047D7D]/5 rounded-2xl p-5 border border-[#047D7D]/20 space-y-4">
           <div className="flex items-center gap-2 mb-2">
             <span className="text-lg">🎯</span>
@@ -305,7 +318,7 @@ const DetalleTabContent: FC<DetalleTabProps & { alertas: any[] }> = ({ folio, fo
       )}
 
       {/* Formulario de Transición - Comercial -> Legal */}
-      {(usuarioActual?.rol === 'Comercial' || usuarioActual?.rol === 'Admin') && folio.estado === 'Comercial' && (
+      {!isReadOnly && (usuarioActual?.rol === 'Comercial' || usuarioActual?.rol === 'Admin') && folio.estado === 'Comercial' && (
         <div className="bg-blue-50 rounded-2xl p-5 border border-blue-200 space-y-4">
           <div className="flex items-center gap-2 mb-2">
             <span className="text-lg">🤝</span>
@@ -491,7 +504,7 @@ const DetalleTabContent: FC<DetalleTabProps & { alertas: any[] }> = ({ folio, fo
       )}
 
       {/* Formulario de Transición - Legal -> Firma */}
-      {(usuarioActual?.rol === 'Legal' || usuarioActual?.rol === 'Admin') && folio.estado === 'Legal' && (
+      {!isReadOnly && (usuarioActual?.rol === 'Legal' || usuarioActual?.rol === 'Admin') && folio.estado === 'Legal' && (
         <div className="bg-amber-50 rounded-2xl p-5 border border-amber-200 space-y-4">
           <div className="flex items-center gap-2 mb-2">
             <span className="text-lg">⚖️</span>
@@ -649,7 +662,7 @@ const DetalleTabContent: FC<DetalleTabProps & { alertas: any[] }> = ({ folio, fo
       )}
 
       {/* Formulario de Transición - Firma -> Gerencia */}
-      {(usuarioActual?.rol === 'Comercial' || usuarioActual?.rol === 'Admin') && folio.estado === 'Firma' && (
+      {!isReadOnly && (usuarioActual?.rol === 'Firma' || usuarioActual?.rol === 'Admin') && folio.estado === 'Firma' && (
         <div className="bg-cyan-50 rounded-2xl p-5 border border-cyan-200 space-y-4">
           <div className="flex items-center gap-2 mb-2">
             <span className="text-lg">🖋️</span>
@@ -731,6 +744,179 @@ const DetalleTabContent: FC<DetalleTabProps & { alertas: any[] }> = ({ folio, fo
         </div>
       )}
 
+      {/* Formulario de Transición - Gerencia -> Marketing */}
+      {!isReadOnly && (usuarioActual?.rol === 'Gerencia' || usuarioActual?.rol === 'Admin') && folio.estado === 'Gerencia' && (
+        <div className="bg-rose-50 rounded-2xl p-5 border border-rose-200 space-y-4">
+          <div className="flex items-center gap-2 mb-2">
+            <span className="text-lg">📈</span>
+            <h4 className="text-sm font-bold text-rose-700 uppercase tracking-wider">Aprobación de Gerencia</h4>
+          </div>
+
+          <div className="grid grid-cols-2 gap-4">
+            <div className="col-span-2">
+              <label className="block text-[10px] font-bold text-surface-500 uppercase mb-1.5">Valida la Clasificación (Score) *</label>
+              <div className="flex gap-2">
+                {(['A', 'B', 'C'] as const).map((s) => (
+                  <button
+                    key={s}
+                    onClick={() => actualizarFolio(folio.id, { score: s })}
+                    className={`flex-1 py-2 rounded-xl text-sm font-bold transition-smooth ${
+                      folio.score === s
+                        ? s === 'A' ? 'bg-emerald-500 text-white shadow-lg shadow-emerald-500/20' : s === 'B' ? 'bg-blue-500 text-white shadow-lg shadow-blue-500/20' : 'bg-orange-500 text-white shadow-lg shadow-orange-500/20'
+                        : 'bg-white text-surface-600 border border-surface-200 hover:bg-rose-50'
+                    }`}
+                  >
+                    {s}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            <div>
+              <label className="block text-[10px] font-bold text-surface-500 uppercase mb-1.5">Segmentación Adecuada *</label>
+              <input
+                type="text"
+                value={segmentacion}
+                onChange={(e) => setSegmentacion(e.target.value)}
+                placeholder="Ej. Familias, Inversionistas..."
+                className="w-full px-3 py-2 bg-white border border-surface-200 rounded-xl text-xs focus:outline-none focus:border-rose-500 transition-smooth"
+              />
+            </div>
+            
+            <div>
+              <label className="block text-[10px] font-bold text-surface-500 uppercase mb-1.5">Inversión Pauta (USD) *</label>
+              <input
+                type="number"
+                value={inversion}
+                onChange={(e) => setInversion(e.target.value)}
+                placeholder="0.00"
+                className="w-full px-3 py-2 bg-white border border-surface-200 rounded-xl text-xs focus:outline-none focus:border-rose-500 transition-smooth"
+              />
+            </div>
+
+            <div className="col-span-2">
+              <label className="block text-[10px] font-bold text-surface-500 uppercase mb-1.5">Duración de la Publicación *</label>
+              <input
+                type="text"
+                value={duracion}
+                onChange={(e) => setDuracion(e.target.value)}
+                placeholder="Ej. 3 meses, Hasta venderse..."
+                className="w-full px-3 py-2 bg-white border border-surface-200 rounded-xl text-xs focus:outline-none focus:border-rose-500 transition-smooth"
+              />
+            </div>
+          </div>
+
+          <button
+            onClick={() => {
+              if (!segmentacion || !inversion || !duracion) {
+                alert('Por favor completa todos los campos para pasar a Marketing.');
+                return;
+              }
+              actualizarFolio(folio.id, {
+                segmentacionAdecuada: segmentacion,
+                inversionPautaAdecuada: Number(inversion),
+                duracionPublicacion: duracion
+              });
+              moverFolio(folio.id, 'Marketing');
+            }}
+            className="w-full bg-rose-600 hover:bg-rose-700 text-white py-2.5 rounded-xl text-xs font-bold transition-smooth shadow-lg shadow-rose-500/20 flex items-center justify-center gap-2"
+          >
+            Enviar a Marketing 📣
+          </button>
+        </div>
+      )}
+
+      {/* Formulario de Transición - Marketing -> Publicado */}
+      {!isReadOnly && (usuarioActual?.rol === 'Marketing' || usuarioActual?.rol === 'Admin') && folio.estado === 'Marketing' && (
+        <div className="bg-emerald-50 rounded-2xl p-5 border border-emerald-200 space-y-4">
+          <div className="flex items-center gap-2 mb-2">
+            <span className="text-lg">📢</span>
+            <h4 className="text-sm font-bold text-emerald-700 uppercase tracking-wider">Gestión de Publicidad</h4>
+          </div>
+
+          <div className="space-y-4">
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <label className="block text-[10px] font-bold text-surface-500 uppercase mb-1.5 flex items-center gap-1.5">
+                  <span className="text-blue-600 font-bold">Facebook</span>
+                </label>
+                <input
+                  type="url"
+                  value={fbUrl}
+                  onChange={(e) => setFbUrl(e.target.value)}
+                  placeholder="https://facebook.com/..."
+                  className="w-full px-3 py-2 bg-white border border-surface-200 rounded-xl text-xs focus:outline-none focus:border-emerald-500 transition-smooth"
+                />
+              </div>
+              <div>
+                <label className="block text-[10px] font-bold text-surface-500 uppercase mb-1.5 flex items-center gap-1.5">
+                  <span className="text-pink-600 font-bold">Instagram</span>
+                </label>
+                <input
+                  type="url"
+                  value={igUrl}
+                  onChange={(e) => setIgUrl(e.target.value)}
+                  placeholder="https://instagram.com/..."
+                  className="w-full px-3 py-2 bg-white border border-surface-200 rounded-xl text-xs focus:outline-none focus:border-emerald-500 transition-smooth"
+                />
+              </div>
+            </div>
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <label className="block text-[10px] font-bold text-surface-500 uppercase mb-1.5 flex items-center gap-1.5">
+                  <span className="text-zinc-900 font-bold">TikTok</span>
+                </label>
+                <input
+                  type="url"
+                  value={tkUrl}
+                  onChange={(e) => setTkUrl(e.target.value)}
+                  placeholder="https://tiktok.com/@..."
+                  className="w-full px-3 py-2 bg-white border border-surface-200 rounded-xl text-xs focus:outline-none focus:border-emerald-500 transition-smooth"
+                />
+              </div>
+              <div>
+                <label className="block text-[10px] font-bold text-surface-500 uppercase mb-1.5 flex items-center gap-1.5">
+                  <span className="font-bold text-emerald-700">Página Web</span>
+                </label>
+                <input
+                  type="url"
+                  value={wbUrl}
+                  onChange={(e) => setWbUrl(e.target.value)}
+                  placeholder="https://propify.pe/..."
+                  className="w-full px-3 py-2 bg-white border border-surface-200 rounded-xl text-xs focus:outline-none focus:border-emerald-500 transition-smooth"
+                />
+              </div>
+            </div>
+            <div>
+              <label className="block text-[10px] font-bold text-surface-500 uppercase mb-1.5">Otros Enlaces</label>
+              <input
+                type="url"
+                value={otUrl}
+                onChange={(e) => setOtUrl(e.target.value)}
+                placeholder="Otros portales inmobiliarios..."
+                className="w-full px-3 py-2 bg-white border border-surface-200 rounded-xl text-xs focus:outline-none focus:border-emerald-500 transition-smooth"
+              />
+            </div>
+          </div>
+
+          <button
+            onClick={() => {
+              actualizarFolio(folio.id, {
+                facebookUrl: fbUrl,
+                tiktokUrl: tkUrl,
+                instagramUrl: igUrl,
+                webUrl: wbUrl,
+                otrosUrl: otUrl,
+              });
+              moverFolio(folio.id, 'Publicado');
+            }}
+            className="w-full bg-emerald-600 hover:bg-emerald-700 text-white py-2.5 rounded-xl text-xs font-bold transition-smooth shadow-lg shadow-emerald-500/20 flex items-center justify-center gap-2"
+          >
+            Publicar Inmueble 🚀
+          </button>
+        </div>
+      )}
+
       {/* Mostrar Contrato Firmado si existe */}
       {folio.contratoFirmadoUrl && (
         <div className="bg-cyan-50/50 rounded-xl p-4 border border-cyan-100 flex items-center justify-between">
@@ -756,6 +942,67 @@ const DetalleTabContent: FC<DetalleTabProps & { alertas: any[] }> = ({ folio, fo
         </div>
       )}
 
+      {/* Mostrar Datos de Gerencia si existen */}
+      {folio.segmentacionAdecuada && (
+        <div className="bg-rose-50/50 rounded-xl p-4 border border-rose-100 space-y-3">
+          <div className="flex items-center gap-2 mb-1">
+            <span className="text-lg">📈</span>
+            <p className="text-[10px] text-rose-600 font-bold uppercase tracking-wider">Aprobación de Gerencia</p>
+          </div>
+          <div className="grid grid-cols-2 gap-3">
+            <div className="bg-white px-2.5 py-1.5 rounded-lg border border-rose-200">
+              <span className="text-[10px] font-semibold text-surface-500 block uppercase">Segmentación</span>
+              <span className="text-xs font-bold text-surface-700">{folio.segmentacionAdecuada}</span>
+            </div>
+            <div className="bg-white px-2.5 py-1.5 rounded-lg border border-rose-200">
+              <span className="text-[10px] font-semibold text-surface-500 block uppercase">Inversión Pauta</span>
+              <span className="text-xs font-bold text-rose-600">$ {folio.inversionPautaAdecuada?.toLocaleString()}</span>
+            </div>
+            <div className="bg-white px-2.5 py-1.5 rounded-lg border border-rose-200 col-span-2">
+              <span className="text-[10px] font-semibold text-surface-500 block uppercase">Duración</span>
+              <span className="text-xs font-bold text-surface-700">{folio.duracionPublicacion}</span>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Mostrar Enlaces de Marketing si existen */}
+      {(folio.facebookUrl || folio.instagramUrl || folio.tiktokUrl || folio.webUrl || folio.otrosUrl) && (
+        <div className="bg-emerald-50/50 rounded-xl p-4 border border-emerald-100 space-y-3">
+          <div className="flex items-center gap-2 mb-1">
+            <span className="text-lg">🔗</span>
+            <p className="text-[10px] text-emerald-600 font-bold uppercase tracking-wider">Enlaces de Publicación</p>
+          </div>
+          <div className="flex flex-wrap gap-2">
+            {folio.facebookUrl && (
+              <a href={folio.facebookUrl} target="_blank" rel="noopener noreferrer" className="px-3 py-1.5 bg-white border border-emerald-200 rounded-lg text-[10px] font-bold text-blue-600 hover:bg-blue-50 transition-smooth flex items-center gap-1.5">
+                <span>FB</span> Facebook
+              </a>
+            )}
+            {folio.instagramUrl && (
+              <a href={folio.instagramUrl} target="_blank" rel="noopener noreferrer" className="px-3 py-1.5 bg-white border border-emerald-200 rounded-lg text-[10px] font-bold text-pink-600 hover:bg-pink-50 transition-smooth flex items-center gap-1.5">
+                <span>IG</span> Instagram
+              </a>
+            )}
+            {folio.tiktokUrl && (
+              <a href={folio.tiktokUrl} target="_blank" rel="noopener noreferrer" className="px-3 py-1.5 bg-white border border-emerald-200 rounded-lg text-[10px] font-bold text-zinc-900 hover:bg-zinc-50 transition-smooth flex items-center gap-1.5">
+                <span>TK</span> TikTok
+              </a>
+            )}
+            {folio.webUrl && (
+              <a href={folio.webUrl} target="_blank" rel="noopener noreferrer" className="px-3 py-1.5 bg-white border border-emerald-200 rounded-lg text-[10px] font-bold text-emerald-700 hover:bg-emerald-50 transition-smooth flex items-center gap-1.5">
+                <span>🌐</span> Web
+              </a>
+            )}
+            {folio.otrosUrl && (
+              <a href={folio.otrosUrl} target="_blank" rel="noopener noreferrer" className="px-3 py-1.5 bg-white border border-emerald-200 rounded-lg text-[10px] font-bold text-surface-600 hover:bg-surface-50 transition-smooth flex items-center gap-1.5">
+                <span>🔗</span> Otros
+              </a>
+            )}
+          </div>
+        </div>
+      )}
+
       {/* Info Sections */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         
@@ -770,6 +1017,7 @@ const DetalleTabContent: FC<DetalleTabProps & { alertas: any[] }> = ({ folio, fo
             <InfoItem label="Antigüedad" value={folio.antiguedad !== undefined ? `${folio.antiguedad} años` : '—'} />
             <InfoItem label="Partida Reg." value={folio.partidaRegistral || '—'} />
             <InfoItem label="Ubicación" value={[folio.distrito, folio.provincia].filter(Boolean).join(', ') || '—'} />
+            <InfoItem label="Dirección" value={folio.direccion || '—'} className="col-span-2" />
             <InfoItem label="Urgencia Venta" value={folio.urgenciaVenta || '—'} />
           </div>
         </div>
@@ -856,8 +1104,8 @@ const DetalleTabContent: FC<DetalleTabProps & { alertas: any[] }> = ({ folio, fo
   );
 };
 
-const InfoItem: FC<{ label: string; value: string; icon?: string }> = ({ label, value, icon }) => (
-  <div className="bg-white border border-surface-200 rounded-xl p-3">
+const InfoItem: FC<{ label: string; value: string; icon?: string; className?: string }> = ({ label, value, icon, className }) => (
+  <div className={`bg-white border border-surface-200 rounded-xl p-3 ${className || ''}`}>
     <div className="flex items-center gap-1.5 mb-1">
       {icon && <span className="text-sm">{icon}</span>}
       <span className="text-[10px] font-semibold text-surface-400 uppercase tracking-wider">{label}</span>
@@ -872,6 +1120,7 @@ interface TimelineTabProps {
   actividades: ReturnType<typeof useFolioStore.getState>['folios'][number]['actividades'];
   agregarActividad: ReturnType<typeof useFolioStore.getState>['agregarActividad'];
   eliminarActividad: ReturnType<typeof useFolioStore.getState>['eliminarActividad'];
+  isReadOnly?: boolean;
 }
 
 const TimelineTab: FC<TimelineTabProps> = ({
@@ -879,6 +1128,7 @@ const TimelineTab: FC<TimelineTabProps> = ({
   actividades,
   agregarActividad,
   eliminarActividad,
+  isReadOnly,
 }) => {
   const [formVisible, setFormVisible] = useState(false);
   const [tipo, setTipo] = useState<TipoActividad>('Llamada');
@@ -950,12 +1200,14 @@ const TimelineTab: FC<TimelineTabProps> = ({
           <h4 className="text-sm font-semibold text-surface-700">Bitácora de Actividades</h4>
           <p className="text-xs text-surface-400">{actividades.length} actividades registradas</p>
         </div>
-        <button
-          onClick={() => setFormVisible(!formVisible)}
-          className="bg-primary-500 hover:bg-primary-600 text-white px-3 py-1.5 rounded-lg text-xs font-semibold transition-smooth cursor-pointer flex items-center gap-1"
-        >
-          {formVisible ? '✕ Cancelar' : '+ Registrar'}
-        </button>
+        {!isReadOnly && (
+          <button
+            onClick={() => setFormVisible(!formVisible)}
+            className="bg-primary-500 hover:bg-primary-600 text-white px-3 py-1.5 rounded-lg text-xs font-semibold transition-smooth cursor-pointer flex items-center gap-1"
+          >
+            {formVisible ? '✕ Cancelar' : '+ Registrar'}
+          </button>
+        )}
       </div>
 
       {/* Form */}
@@ -1096,13 +1348,15 @@ const TimelineTab: FC<TimelineTabProps> = ({
                           </span>
                         )}
                       </span>
-                      <button
-                        onClick={() => eliminarActividad(folioId, actividad.id)}
-                        className="opacity-0 group-hover:opacity-100 w-5 h-5 rounded bg-red-50 hover:bg-red-100 flex items-center justify-center text-red-500 text-[10px] transition-smooth cursor-pointer"
-                        title="Eliminar"
-                      >
-                        ✕
-                      </button>
+                      {!isReadOnly && (
+                        <button
+                          onClick={() => eliminarActividad(folioId, actividad.id)}
+                          className="opacity-0 group-hover:opacity-100 w-5 h-5 rounded bg-red-50 hover:bg-red-100 flex items-center justify-center text-red-500 text-[10px] transition-smooth cursor-pointer"
+                          title="Eliminar"
+                        >
+                          ✕
+                        </button>
+                      )}
                     </div>
                   </div>
                   <div className="flex items-center gap-1.5 mb-2">
@@ -1133,6 +1387,7 @@ interface CostosTabProps {
   precioVenta: number;
   utilidad: number;
   canDeleteCost: boolean;
+  isReadOnly?: boolean;
 }
 
 const CostosTab: FC<CostosTabProps> = ({
@@ -1145,6 +1400,7 @@ const CostosTab: FC<CostosTabProps> = ({
   precioVenta,
   utilidad,
   canDeleteCost,
+  isReadOnly,
 }) => {
   const [formVisible, setFormVisible] = useState(false);
   const [categoria, setCategoria] = useState<CategoriaCosto>('Gasolina');
@@ -1200,12 +1456,14 @@ const CostosTab: FC<CostosTabProps> = ({
           <h4 className="text-sm font-semibold text-surface-700">Registro de Costos</h4>
           <p className="text-xs text-surface-400">{costos.length} gastos registrados</p>
         </div>
-        <button
-          onClick={() => setFormVisible(!formVisible)}
-          className="bg-primary-500 hover:bg-primary-600 text-white px-3 py-1.5 rounded-lg text-xs font-semibold transition-smooth cursor-pointer flex items-center gap-1"
-        >
-          {formVisible ? '✕ Cancelar' : '+ Agregar Gasto'}
-        </button>
+        {!isReadOnly && (
+          <button
+            onClick={() => setFormVisible(!formVisible)}
+            className="bg-primary-500 hover:bg-primary-600 text-white px-3 py-1.5 rounded-lg text-xs font-semibold transition-smooth cursor-pointer flex items-center gap-1"
+          >
+            {formVisible ? '✕ Cancelar' : '+ Agregar Gasto'}
+          </button>
+        )}
       </div>
 
       {/* Form */}

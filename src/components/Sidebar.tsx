@@ -33,7 +33,7 @@ const Sidebar: FC = () => {
   const modoOscuro = useUIStore(s => s.modoOscuro);
   const toggleModoOscuro = useUIStore(s => s.toggleModoOscuro);
   const sidebarAbierto = useUIStore(s => s.sidebarAbierto);
-  const [compraAbierto, setCompraAbierto] = useState(false);
+  const [propietariosAbierto, setPropietariosAbierto] = useState(false);
 
   return (
     <aside className={`w-64 bg-zinc-900 text-white flex flex-col min-h-screen shadow-xl fixed inset-y-0 left-0 z-50 transform transition-transform duration-300 ease-in-out md:relative md:translate-x-0 ${sidebarAbierto ? 'translate-x-0' : '-translate-x-full'}`}>
@@ -59,20 +59,20 @@ const Sidebar: FC = () => {
       {/* Navigation */}
       <nav className="flex-1 p-4 space-y-4 overflow-y-auto scrollbar-none">
         
-        {/* Grupo Compra (Desplegable) */}
+        {/* Grupo Propietarios (Desplegable) */}
         <div className="space-y-1">
           <button 
-            onClick={() => setCompraAbierto(!compraAbierto)}
+            onClick={() => setPropietariosAbierto(!propietariosAbierto)}
             className="w-full flex items-center justify-between px-3 py-2 text-[10px] uppercase tracking-[0.2em] text-zinc-500 font-bold hover:text-zinc-300 transition-smooth group"
           >
             <div className="flex items-center gap-2">
-              <span className={`w-1.5 h-1.5 rounded-full transition-all ${compraAbierto ? 'bg-primary-500 shadow-[0_0_8px_rgba(59,130,246,0.5)]' : 'bg-zinc-600'}`}></span>
-              Compra
+              <span className={`w-1.5 h-1.5 rounded-full transition-all ${propietariosAbierto ? 'bg-primary-500 shadow-[0_0_8px_rgba(59,130,246,0.5)]' : 'bg-zinc-600'}`}></span>
+              Propietarios
             </div>
-            <span className={`text-[8px] transition-transform duration-300 ${compraAbierto ? 'rotate-180' : ''}`}>▼</span>
+            <span className={`text-[8px] transition-transform duration-300 ${propietariosAbierto ? 'rotate-180' : ''}`}>▼</span>
           </button>
           
-          <div className={`space-y-1 overflow-hidden transition-all duration-300 ${compraAbierto ? 'max-h-40 opacity-100 mt-1' : 'max-h-0 opacity-0'}`}>
+          <div className={`space-y-1 overflow-hidden transition-all duration-300 ${propietariosAbierto ? 'max-h-40 opacity-100 mt-1' : 'max-h-0 opacity-0'}`}>
             {navItems.filter(i => ['misfolios', 'kanban', 'agenda'].includes(i.id)).map((item) => (
               <button
                 key={item.id}

@@ -106,6 +106,18 @@ export interface Folio {
   requiereSaneamiento?: boolean;
   contratoFirmadoUrl?: string;
   
+  // DATOS DE GERENCIA
+  segmentacionAdecuada?: string;
+  inversionPautaAdecuada?: number;
+  duracionPublicacion?: string;
+  
+  // DATOS DE MARKETING
+  facebookUrl?: string;
+  tiktokUrl?: string;
+  instagramUrl?: string;
+  webUrl?: string;
+  otrosUrl?: string;
+  
   // OTRAS RELACIONES Y CAMPOS
   direccion?: string;
   responsable: string;

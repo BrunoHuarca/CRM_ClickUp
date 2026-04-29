@@ -9,6 +9,7 @@ interface FolioStore {
   vistaActiva: VistaActiva;
   modalAbierto: boolean;
   folioDetalleId: string | null;
+  isReadOnly: boolean;
   notificaciones: Notificacion[];
   initialized: boolean;
   filtros: FiltrosGlobales;
@@ -18,7 +19,7 @@ interface FolioStore {
   setFiltros: (filtros: Partial<FiltrosGlobales>) => void;
   abrirModal: () => void;
   cerrarModal: () => void;
-  abrirDetalle: (folioId: string) => void;
+  abrirDetalle: (folioId: string, readOnly?: boolean) => void;
   cerrarDetalle: () => void;
   agregarFolio: (folio: Omit<Folio, 'id' | 'fechaCreacion' | 'actividades' | 'costos' | 'campanaPausada'>) => void;
   moverFolio: (folioId: string, nuevoEstado: EstadoFolio) => void;
@@ -70,6 +71,7 @@ export const useFolioStore = create<FolioStore>()(
       vistaActiva: 'kanban',
       modalAbierto: false,
       folioDetalleId: null,
+      isReadOnly: false,
       notificaciones: [],
       initialized: false,
       filtros: {
@@ -88,9 +90,9 @@ export const useFolioStore = create<FolioStore>()(
 
       cerrarModal: () => set({ modalAbierto: false }),
 
-      abrirDetalle: (folioId) => set({ folioDetalleId: folioId }),
+      abrirDetalle: (folioId, readOnly = false) => set({ folioDetalleId: folioId, isReadOnly: readOnly }),
 
-      cerrarDetalle: () => set({ folioDetalleId: null }),
+      cerrarDetalle: () => set({ folioDetalleId: null, isReadOnly: false }),
 
       agregarFolio: (folioData) =>
         set((state) => {

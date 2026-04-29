@@ -16,6 +16,7 @@ interface MapSelectorProps {
   initialLat?: number;
   initialLng?: number;
   onLocationSelect: (lat: number, lng: number) => void;
+  forceRefresh?: boolean;
 }
 
 const LocationMarker = ({ position, setPosition, onSelect }: any) => {
@@ -29,16 +30,17 @@ const LocationMarker = ({ position, setPosition, onSelect }: any) => {
   return position === null ? null : <Marker position={position}></Marker>;
 };
 
-const MapUpdater = ({ center }: { center: L.LatLng | null }) => {
+const MapUpdater = ({ center, forceRefresh }: { center: L.LatLng | null; forceRefresh?: boolean }) => {
   const map = useMap();
   
   useEffect(() => {
-    // Forzar el redibujado del mapa al montar para evitar cuadros grises
-    const timer = setTimeout(() => {
-      map.invalidateSize();
-    }, 400);
-    return () => clearTimeout(timer);
-  }, [map]);
+    // Si forceRefresh es true, disparamos varias actualizaciones para asegurar que el contenedor tenga el tamaño correcto
+    if (forceRefresh) {
+      const delays = [50, 150, 300, 600];
+      const timers = delays.map(ms => setTimeout(() => map.invalidateSize(), ms));
+      return () => timers.forEach(t => clearTimeout(t));
+    }
+  }, [map, forceRefresh]);
 
   useEffect(() => {
     if (center) {
@@ -49,7 +51,7 @@ const MapUpdater = ({ center }: { center: L.LatLng | null }) => {
   return null;
 };
 
-const MapSelector: FC<MapSelectorProps> = ({ initialLat, initialLng, onLocationSelect }) => {
+const MapSelector: FC<MapSelectorProps> = ({ initialLat, initialLng, onLocationSelect, forceRefresh }) => {
   const [position, setPosition] = useState<L.LatLng | null>(
     initialLat && initialLng ? new L.LatLng(initialLat, initialLng) : null
   );
@@ -121,9 +123,11 @@ const MapSelector: FC<MapSelectorProps> = ({ initialLat, initialLng, onLocationS
           <TileLayer
             attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
             url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+            updateWhenIdle={false}
+            updateWhenZooming={true}
           />
           <LocationMarker position={position} setPosition={setPosition} onSelect={onLocationSelect} />
-          <MapUpdater center={position} />
+          <MapUpdater center={position} forceRefresh={forceRefresh} />
         </MapContainer>
         <div className="absolute top-2 right-2 bg-white/90 backdrop-blur px-3 py-1 rounded-lg text-xs font-medium text-surface-600 shadow-sm z-[1000] pointer-events-none">
           Haz clic en el mapa para ubicar

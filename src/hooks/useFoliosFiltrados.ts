@@ -15,7 +15,12 @@ export const useFoliosFiltrados = () => {
 
   return useMemo(() => {
     return folios.filter((folio) => {
-      // 0. Filtrar por Rol (Seguridad)
+      // 0. Filtrar por Cancelado (Solo Admin puede verlos)
+      if (folio.estado === 'Cancelado' && usuarioActual?.rol !== 'Admin') {
+        return false;
+      }
+
+      // 1. Filtrar por Rol (Seguridad)
       if (usuarioActual && usuarioActual.rol === 'Comercial') {
         const esCreador = folio.responsable === usuarioActual.nombre;
         const esAsignado = folio.responsablePrincipal === usuarioActual.nombre;
