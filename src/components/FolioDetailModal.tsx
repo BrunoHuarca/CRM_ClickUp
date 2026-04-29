@@ -662,7 +662,7 @@ const DetalleTabContent: FC<DetalleTabProps & { alertas: any[]; isReadOnly?: boo
       )}
 
       {/* Formulario de Transición - Firma -> Gerencia */}
-      {!isReadOnly && (usuarioActual?.rol === 'Firma' || usuarioActual?.rol === 'Admin') && folio.estado === 'Firma' && (
+      {!isReadOnly && (usuarioActual?.rol === 'Comercial' || usuarioActual?.rol === 'Admin') && folio.estado === 'Firma' && (
         <div className="bg-cyan-50 rounded-2xl p-5 border border-cyan-200 space-y-4">
           <div className="flex items-center gap-2 mb-2">
             <span className="text-lg">🖋️</span>
