@@ -1,38 +1,44 @@
-import { type FC, useMemo, useState } from 'react';
+import { type FC, useMemo, useState, useEffect } from 'react';
 import { useFolioStore } from '../store/useFolioStore';
 import { useUsuarioStore } from '../store/useUsuarioStore';
 import { SCORE_CONFIG } from '../constants';
-import FiltrosGlobales from './FiltrosGlobales';
 
 const AgendaVisitas: FC = () => {
   const folios = useFolioStore((s) => s.folios);
   const abrirDetalle = useFolioStore((s) => s.abrirDetalle);
   const usuarioActual = useUsuarioStore((s) => s.getUsuarioActual());
-  const [filtroAgente, setFiltroAgente] = useState<string>(() => {
-    if (usuarioActual?.rol === 'Admin' || usuarioActual?.rol === 'Gerencia') return '';
-    return usuarioActual?.nombre || '';
-  });
+  const [filtroAgente, setFiltroAgente] = useState<string>('');
   const [filtroFecha, setFiltroFecha] = useState<string>(() => {
     const d = new Date();
     return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
   });
+
+  // Sincronizar filtro de agente inicial cuando carga el usuario
+  useEffect(() => {
+    if (usuarioActual && !filtroAgente) {
+      if (usuarioActual.rol !== 'Admin' && usuarioActual.rol !== 'Gerencia') {
+        setFiltroAgente(usuarioActual.nombre);
+      }
+    }
+  }, [usuarioActual]);
 
   // Extraer las visitas programadas de los folios en estado Comercial
   const visitas = useMemo(() => {
     return folios
       .filter((f) => f.estado === 'Comercial' && f.visitaProgramada)
       .map((f) => {
-        const dateObj = new Date(f.visitaProgramada);
+        const dateObj = new Date(f.visitaProgramada || '');
         return {
           id: `pv-${f.id}`,
           folioId: f.id,
           tipo: 'Visita',
-          fecha: f.visitaProgramada,
+          fecha: f.visitaProgramada || '',
           horaInicio: dateObj.toLocaleTimeString('es-PE', { hour: '2-digit', minute: '2-digit', hour12: false }),
           horaFin: '',
           responsable: f.responsablePrincipal || 'Sin asignar',
           score: f.score || 'C',
-          direccion: f.direccion,
+          direccion: f.direccion || '',
+          resultado: '',
         };
       })
       .sort((a, b) => {
@@ -113,7 +119,7 @@ const AgendaVisitas: FC = () => {
           ) : (
             <div className="relative border-l-2 border-surface-200 ml-4 space-y-6 py-2">
               {visitasFiltradas.map((visita, idx) => {
-                const scoreConfig = SCORE_CONFIG[visita.score];
+                const scoreConfig = SCORE_CONFIG[visita.score as keyof typeof SCORE_CONFIG] || SCORE_CONFIG.C;
                 return (
                   <div key={`${visita.id}-${idx}`} className="relative pl-6">
                     {/* Timeline dot */}
