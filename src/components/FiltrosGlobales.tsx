@@ -1,10 +1,21 @@
 import { type FC } from 'react';
 import { useFolioStore } from '../store/useFolioStore';
+import { useCompradorStore } from '../store/useCompradorStore';
 import { useUsuarioStore } from '../store/useUsuarioStore';
 
-const FiltrosGlobales: FC = () => {
-  const filtros = useFolioStore((s) => s.filtros);
-  const setFiltros = useFolioStore((s) => s.setFiltros);
+interface FiltrosGlobalesProps {
+  isCompradores?: boolean;
+}
+
+const FiltrosGlobales: FC<FiltrosGlobalesProps> = ({ isCompradores = false }) => {
+  const foliosFiltros = useFolioStore((s) => s.filtros);
+  const setFoliosFiltros = useFolioStore((s) => s.setFiltros);
+  const compFiltros = useCompradorStore((s) => s.filtros);
+  const setCompFiltros = useCompradorStore((s) => s.setFiltros);
+  
+  const filtros = isCompradores ? compFiltros : foliosFiltros;
+  const setFiltros = isCompradores ? setCompFiltros : setFoliosFiltros;
+
   const usuarios = useUsuarioStore((s) => s.usuarios);
 
   const resetFiltros = () => {

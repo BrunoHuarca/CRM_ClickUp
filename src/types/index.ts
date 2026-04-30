@@ -1,5 +1,6 @@
-export type EstadoFolio = 'Captación' | 'Comercial' | 'Legal' | 'Firma' | 'Gerencia' | 'Marketing' | 'Publicado' | 'Cancelado';
+export type EstadoFolio = 'Captación' | 'Comercial' | 'Legal' | 'Firma' | 'Gerencia' | 'Marketing' | 'Publicado' | 'Cancelado' | 'Vendido';
 
+export type EstadoComprador = 'Captación' | 'Comercial' | 'Legal' | 'Firma' | 'Cierre' | 'Perdido';
 export type ScoreFolio = 'A' | 'B' | 'C';
 
 export type TipoInmueble =
@@ -124,6 +125,7 @@ export interface Folio {
   actividades: Actividad[];
   costos: Costo[];
   campanaPausada?: boolean;
+  compradorAsignadoId?: string; // ID del comprador que tiene reservada la propiedad
 }
 
 export interface ColumnaKanban {
@@ -135,7 +137,40 @@ export interface ColumnaKanban {
   iconColor: string;
 }
 
-export type VistaActiva = 'kanban' | 'dashboard' | 'agentes' | 'usuarios' | 'agenda' | 'misfolios';
+export interface ColumnaKanbanComprador {
+  id: EstadoComprador;
+  titulo: string;
+  color: string;
+  bgColor: string;
+  borderColor: string;
+  iconColor: string;
+}
+
+export interface Comprador {
+  id: string;
+  estado: EstadoComprador;
+  origen: 'Meta' | 'Orgánico' | 'Referido';
+  nombre: string;
+  inversionEstimada: number;
+  tipoInmuebleBusca: TipoInmueble | 'Indistinto';
+  urgencia: 'Alta' | 'Media' | 'Baja';
+  score: ScoreFolio;
+  fechaCreacion: string;
+  responsable: string;
+  telefono?: string;
+  email?: string;
+  actividades: Actividad[];
+  notas?: string;
+  propiedadesInteres: string[];
+  folioVinculadoId?: string;
+  interesado?: boolean;
+  contratoUrl?: string;
+  contratoFirmadoUrl?: string;
+  datosLegales?: string;
+  fechaCierre?: string;
+}
+
+export type VistaActiva = 'kanban' | 'dashboard' | 'agentes' | 'usuarios' | 'agenda' | 'misfolios' | 'miscompradores' | 'kanbancompradores' | 'agendacompradores' | 'cartelerapropiedades';
 
 export interface FiltrosGlobales {
   fechaInicio: string;

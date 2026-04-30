@@ -15,6 +15,13 @@ import CentroNotificaciones from './components/CentroNotificaciones';
 import SelectorUsuario from './components/SelectorUsuario';
 import AccesoRestringido from './components/AccesoRestringido';
 import MisFolios from './components/MisFolios';
+import MisCompradores from './components/MisCompradores';
+import KanbanBoardCompradores from './components/KanbanBoardCompradores';
+import AgendaCompradores from './components/AgendaCompradores';
+import CarteleraPropiedades from './components/CarteleraPropiedades';
+import CrearCompradorModal from './components/CrearCompradorModal';
+import CompradorDetailModal from './components/CompradorDetailModal';
+import { useCompradorStore } from './store/useCompradorStore';
 
 const VISTA_CONFIG: Record<string, { label: string; icon: string }> = {
   kanban: { label: 'Tablero Kanban', icon: '◫' },
@@ -23,6 +30,10 @@ const VISTA_CONFIG: Record<string, { label: string; icon: string }> = {
   agentes: { label: 'Reporte de Agentes', icon: '◨' },
   usuarios: { label: 'Configuración de Usuarios', icon: '⚙' },
   misfolios: { label: 'Mis Folios Asignados', icon: '📋' },
+  miscompradores: { label: 'Bandeja de Compradores', icon: '📥' },
+  kanbancompradores: { label: 'Kanban Compradores', icon: '📊' },
+  agendacompradores: { label: 'Agenda Compradores', icon: '🗓️' },
+  cartelerapropiedades: { label: 'Cartelera de Propiedades', icon: '🏢' },
 };
 
 const App: FC = () => {
@@ -30,6 +41,7 @@ const App: FC = () => {
   const inicializar = useFolioStore((s) => s.inicializar);
   const generarNotificaciones = useFolioStore((s) => s.generarNotificaciones);
   const inicializarUsuarios = useUsuarioStore((s) => s.inicializar);
+  const inicializarCompradores = useCompradorStore((s) => s.inicializar);
   const permisos = usePermisos();
   const modoOscuro = useUIStore((s) => s.modoOscuro);
   const sidebarAbierto = useUIStore((s) => s.sidebarAbierto);
@@ -41,7 +53,8 @@ const App: FC = () => {
   useEffect(() => {
     inicializarUsuarios();
     inicializar();
-  }, [inicializar, inicializarUsuarios]);
+    inicializarCompradores();
+  }, [inicializar, inicializarUsuarios, inicializarCompradores]);
 
   useEffect(() => {
     // Redirección inicial para Comercial y Call Center
@@ -86,6 +99,14 @@ const App: FC = () => {
         return <ConfigUsuarios />;
       case 'misfolios':
         return <MisFolios />;
+      case 'miscompradores':
+        return <MisCompradores />;
+      case 'kanbancompradores':
+        return <KanbanBoardCompradores />;
+      case 'agendacompradores':
+        return <AgendaCompradores />;
+      case 'cartelerapropiedades':
+        return <CarteleraPropiedades />;
       default:
         return <KanbanBoard />;
     }
@@ -129,12 +150,20 @@ const App: FC = () => {
           <div className="flex items-center gap-3">
             <CentroNotificaciones />
             {permisos.puedeCrearFolio && (
-              <button
-                onClick={() => useFolioStore.getState().abrirModal()}
-                className="bg-primary-500 hover:bg-primary-600 text-white px-4 py-2 rounded-xl text-xs font-semibold transition-smooth shadow-sm hover:shadow-md cursor-pointer flex items-center gap-1.5"
-              >
-                <span className="text-base">+</span> Nuevo Folio
-              </button>
+              <div className="flex items-center gap-2">
+                <button
+                  onClick={() => useFolioStore.getState().abrirModal()}
+                  className="bg-primary-500 hover:bg-primary-600 text-white px-3 py-2 rounded-xl text-xs font-semibold transition-smooth shadow-sm hover:shadow-md cursor-pointer flex items-center gap-1"
+                >
+                  <span className="text-sm">+</span> Propiedad
+                </button>
+                <button
+                  onClick={() => useCompradorStore.getState().abrirModalCrear()}
+                  className="bg-emerald-500 hover:bg-emerald-600 text-white px-3 py-2 rounded-xl text-xs font-semibold transition-smooth shadow-sm hover:shadow-md cursor-pointer flex items-center gap-1"
+                >
+                  <span className="text-sm">+</span> Comprador
+                </button>
+              </div>
             )}
             <SelectorUsuario />
           </div>
@@ -147,6 +176,8 @@ const App: FC = () => {
       </main>
       <CrearFolioModal />
       <FolioDetailModal />
+      <CrearCompradorModal />
+      <CompradorDetailModal />
     </div>
   );
 };

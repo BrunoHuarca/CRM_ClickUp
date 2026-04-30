@@ -65,6 +65,14 @@ export const COLUMNAS_KANBAN: ColumnaKanban[] = [
     borderColor: 'border-slate-300',
     iconColor: 'text-slate-500',
   },
+  {
+    id: 'Vendido',
+    titulo: 'Vendido',
+    color: 'text-indigo-700',
+    bgColor: 'bg-indigo-50',
+    borderColor: 'border-indigo-300',
+    iconColor: 'text-indigo-500',
+  },
 ];
 
 export const ESTADOS_ORDER = [
@@ -76,6 +84,7 @@ export const ESTADOS_ORDER = [
   'Marketing',
   'Publicado',
   'Cancelado',
+  'Vendido',
 ] as const;
 
 export const SCORE_CONFIG = {
@@ -153,6 +162,7 @@ export const ETAPA_LABELS: Record<string, string> = {
   Marketing: 'Marketing',
   Publicado: 'Publicado',
   Cancelado: 'Cancelado',
+  Vendido: 'Vendido',
 };
 
 /* ========== RBAC CONFIG ========== */
@@ -189,8 +199,8 @@ export interface Permisos {
 
 export const PERMISOS_POR_ROL: Record<string, Permisos> = {
   Admin: {
-    vistas: ['misfolios', 'kanban', 'dashboard', 'agentes', 'usuarios', 'agenda'],
-    etapasVisibles: ['Captación', 'Comercial', 'Legal', 'Firma', 'Gerencia', 'Marketing', 'Publicado', 'Cancelado'],
+    vistas: ['misfolios', 'kanban', 'dashboard', 'agentes', 'usuarios', 'agenda', 'miscompradores', 'kanbancompradores', 'agendacompradores', 'cartelerapropiedades'],
+    etapasVisibles: ['Captación', 'Comercial', 'Legal', 'Firma', 'Gerencia', 'Marketing', 'Publicado', 'Cancelado', 'Vendido'],
     puedeCrearFolio: true,
     puedeMoverFolio: true,
     puedeEliminarCosto: true,
@@ -198,8 +208,8 @@ export const PERMISOS_POR_ROL: Record<string, Permisos> = {
     puedeVerRentabilidad: true,
   },
   Comercial: {
-    vistas: ['misfolios', 'kanban', 'dashboard', 'agentes', 'agenda', 'usuarios'],
-    etapasVisibles: ['Captación', 'Comercial', 'Legal', 'Firma', 'Gerencia', 'Marketing', 'Publicado', 'Cancelado'],
+    vistas: ['misfolios', 'kanban', 'dashboard', 'agentes', 'agenda', 'usuarios', 'miscompradores', 'kanbancompradores', 'agendacompradores', 'cartelerapropiedades'],
+    etapasVisibles: ['Captación', 'Comercial', 'Legal', 'Firma', 'Gerencia', 'Marketing', 'Publicado', 'Cancelado', 'Vendido'],
     puedeCrearFolio: true,
     puedeMoverFolio: true,
     puedeEliminarCosto: false,
@@ -207,7 +217,7 @@ export const PERMISOS_POR_ROL: Record<string, Permisos> = {
     puedeVerRentabilidad: false,
   },
   'Call Center': {
-    vistas: ['misfolios', 'kanban', 'agenda', 'usuarios'],
+    vistas: ['misfolios', 'kanban', 'agenda', 'usuarios', 'miscompradores', 'kanbancompradores', 'agendacompradores'],
     etapasVisibles: ['Captación'],
     puedeCrearFolio: true,
     puedeMoverFolio: false,
@@ -216,8 +226,8 @@ export const PERMISOS_POR_ROL: Record<string, Permisos> = {
     puedeVerRentabilidad: false,
   },
   Legal: {
-    vistas: ['misfolios', 'kanban', 'usuarios'],
-    etapasVisibles: ['Legal'],
+    vistas: ['misfolios', 'kanban', 'usuarios', 'miscompradores', 'kanbancompradores'],
+    etapasVisibles: ['Legal', 'Vendido'],
     puedeCrearFolio: false,
     puedeMoverFolio: false,
     puedeEliminarCosto: false,
@@ -226,7 +236,7 @@ export const PERMISOS_POR_ROL: Record<string, Permisos> = {
   },
   Gerencia: {
     vistas: ['misfolios', 'kanban', 'dashboard', 'usuarios'],
-    etapasVisibles: ['Gerencia'],
+    etapasVisibles: ['Gerencia', 'Vendido'],
     puedeCrearFolio: false,
     puedeMoverFolio: false,
     puedeEliminarCosto: false,
@@ -235,7 +245,7 @@ export const PERMISOS_POR_ROL: Record<string, Permisos> = {
   },
   Marketing: {
     vistas: ['misfolios', 'kanban', 'usuarios'],
-    etapasVisibles: ['Marketing'],
+    etapasVisibles: ['Marketing', 'Vendido'],
     puedeCrearFolio: false,
     puedeMoverFolio: false,
     puedeEliminarCosto: false,

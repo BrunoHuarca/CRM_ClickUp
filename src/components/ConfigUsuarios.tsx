@@ -1,7 +1,8 @@
 import { type FC, type FormEvent, useState } from 'react';
 import { useUsuarioStore } from '../store/useUsuarioStore';
 import { AVATAR_GRADIENTS, ESTADOS_ORDER } from '../constants';
-import type { RolUsuario, VistaActiva, EstadoFolio } from '../types';
+import type { RolUsuario, VistaActiva, EstadoFolio, EstadoComprador } from '../types';
+import { COLUMNAS_KANBAN_COMPRADOR } from '../constants/compradores';
 
 const COLORES = Object.keys(AVATAR_GRADIENTS);
 
@@ -30,7 +31,7 @@ const ConfigUsuarios: FC = () => {
   const [moverF, setMoverF] = useState(false);
   const [eliminarCos, setEliminarCos] = useState(false);
   const [verRent, setVerRent] = useState(false);
-  const [etapasSeleccionadas, setEtapasSeleccionadas] = useState<EstadoFolio[]>([...ESTADOS_ORDER]);
+  const [etapasSeleccionadas, setEtapasSeleccionadas] = useState<(EstadoFolio | EstadoComprador)[]>([...ESTADOS_ORDER]);
 
   const usuarioActual = useUsuarioStore((s) => s.getUsuarioActual());
   const lsRoles = Object.keys(rolesConfig);
@@ -96,7 +97,7 @@ const ConfigUsuarios: FC = () => {
     setMoverF(pRoles.puedeMoverFolio);
     setEliminarCos(pRoles.puedeEliminarCosto);
     setVerRent(pRoles.puedeVerRentabilidad || false);
-    setEtapasSeleccionadas(pRoles.etapasVisibles as EstadoFolio[]);
+    setEtapasSeleccionadas(pRoles.etapasVisibles as (EstadoFolio | EstadoComprador)[]);
     
     setFormRolAbierto(true);
   };
@@ -149,12 +150,25 @@ const ConfigUsuarios: FC = () => {
             <p className="text-xs text-surface-400">{usuarios.filter((u) => u.activo).length} usuarios activos</p>
           </div>
           {usuarioActual?.rol === 'Admin' && (
-            <button
-              onClick={() => setFormAbierto(!formAbierto)}
-              className="bg-primary-500 hover:bg-primary-600 text-white px-4 py-2 rounded-lg text-xs font-semibold transition-smooth cursor-pointer flex items-center gap-1.5"
-            >
-              {formAbierto ? '✕ Cancelar' : '+ Nuevo Usuario'}
-            </button>
+            <div className="flex gap-2">
+              <button
+                onClick={() => {
+                  if (confirm('¿Estás seguro de que deseas limpiar TODA la base de datos de compradores? Esta acción no se puede deshacer.')) {
+                    localStorage.removeItem('propify-compradores-storage');
+                    window.location.reload();
+                  }
+                }}
+                className="bg-red-50 text-red-600 hover:bg-red-100 px-4 py-2 rounded-lg text-xs font-semibold transition-smooth cursor-pointer border border-red-200"
+              >
+                🗑️ Limpiar Compradores
+              </button>
+              <button
+                onClick={() => setFormAbierto(!formAbierto)}
+                className="bg-primary-500 hover:bg-primary-600 text-white px-4 py-2 rounded-lg text-xs font-semibold transition-smooth cursor-pointer flex items-center gap-1.5"
+              >
+                {formAbierto ? '✕ Cancelar' : '+ Nuevo Usuario'}
+              </button>
+            </div>
           )}
         </div>
 
@@ -294,8 +308,8 @@ const ConfigUsuarios: FC = () => {
                     <td className="px-4 py-4 text-center">
                       <div className="flex gap-1 justify-center flex-wrap">
                         {perms?.vistas.map((v) => (
-                          <span key={v} className="px-1.5 py-0.5 rounded text-[9px] bg-surface-100 text-surface-600 font-medium">
-                            {v === 'kanban' ? '◫' : v === 'dashboard' ? '◩' : v === 'agentes' ? '◨' : v === 'misfolios' ? '📋' : '⚙'}
+                          <span key={v} className="px-1.5 py-0.5 rounded text-[9px] bg-surface-100 text-surface-600 font-medium" title={v}>
+                            {v === 'kanban' ? '◫' : v === 'dashboard' ? '◩' : v === 'agentes' ? '◨' : v === 'misfolios' ? '📋' : v === 'miscompradores' ? '📥' : v === 'kanbancompradores' ? '📊' : v === 'agendacompradores' ? '🗓️' : v === 'cartelerapropiedades' ? '🏢' : '⚙'}
                           </span>
                         ))}
                       </div>
@@ -390,7 +404,7 @@ const ConfigUsuarios: FC = () => {
                 <div>
                   <h4 className="text-xs font-bold text-surface-700 mb-3 border-b border-surface-200 pb-2">Vistas Permitidas</h4>
                   <div className="space-y-2">
-                    {(['misfolios', 'kanban', 'dashboard', 'agentes', 'agenda', 'usuarios'] as VistaActiva[]).map(v => (
+                    {(['misfolios', 'kanban', 'dashboard', 'agentes', 'agenda', 'usuarios', 'miscompradores', 'kanbancompradores', 'agendacompradores', 'cartelerapropiedades'] as VistaActiva[]).map(v => (
                       <label key={v} className="flex items-center gap-2 cursor-pointer">
                         <input
                           type="checkbox"
@@ -398,8 +412,15 @@ const ConfigUsuarios: FC = () => {
                           onChange={() => toggleVista(v)}
                           className="w-4 h-4 rounded text-surface-800 focus:ring-surface-800"
                         />
-                        <span className="text-sm font-medium text-surface-600 capitalize">
-                          {v === 'usuarios' ? 'Configuración Usuarios' : v === 'misfolios' ? 'Mis Folios Asignados' : v}
+                        <span className="text-sm font-medium text-surface-600">
+                          {v === 'usuarios' ? '⚙ Configuración Usuarios' : 
+                           v === 'misfolios' ? '📋 Mis Folios' : 
+                           v === 'kanban' ? '◫ Kanban Folios' :
+                           v === 'miscompradores' ? '📥 Mis Compradores' :
+                           v === 'kanbancompradores' ? '📊 Kanban Compradores' :
+                           v === 'agendacompradores' ? '🗓️ Agenda Compradores' :
+                           v === 'cartelerapropiedades' ? '🏢 Cartelera Propiedades' :
+                           v.charAt(0).toUpperCase() + v.slice(1)}
                         </span>
                       </label>
                     ))}
@@ -424,22 +445,43 @@ const ConfigUsuarios: FC = () => {
                 </div>
                 <div>
                   <h4 className="text-xs font-bold text-surface-700 mb-3 border-b border-surface-200 pb-2">Etapas Kanban Visibles</h4>
-                  <div className="grid grid-cols-1 gap-2">
-                    {ESTADOS_ORDER.map(e => (
-                      <label key={e} className="flex items-center gap-2 cursor-pointer">
-                        <input
-                          type="checkbox"
-                          checked={etapasSeleccionadas.includes(e)}
-                          onChange={() => {
-                            setEtapasSeleccionadas(prev => 
-                              prev.includes(e) ? prev.filter(item => item !== e) : [...prev, e]
-                            );
-                          }}
-                          className="w-4 h-4 rounded text-primary-600 focus:ring-primary-500"
-                        />
-                        <span className="text-sm font-medium text-surface-600">{e}</span>
-                      </label>
-                    ))}
+                  <div className="grid grid-cols-2 gap-4">
+                    <div className="space-y-2">
+                      <p className="text-[10px] font-bold text-surface-400 uppercase mb-2">Propietarios (Folios)</p>
+                      {ESTADOS_ORDER.map(e => (
+                        <label key={e} className="flex items-center gap-2 cursor-pointer">
+                          <input
+                            type="checkbox"
+                            checked={etapasSeleccionadas.includes(e)}
+                            onChange={() => {
+                              setEtapasSeleccionadas(prev => 
+                                prev.includes(e) ? prev.filter(item => item !== e) : [...prev, e]
+                              );
+                            }}
+                            className="w-4 h-4 rounded text-primary-600 focus:ring-primary-500"
+                          />
+                          <span className="text-sm font-medium text-surface-600">{e}</span>
+                        </label>
+                      ))}
+                    </div>
+                    <div className="space-y-2">
+                      <p className="text-[10px] font-bold text-surface-400 uppercase mb-2">Compradores</p>
+                      {COLUMNAS_KANBAN_COMPRADOR.map(c => (
+                        <label key={c.id} className="flex items-center gap-2 cursor-pointer">
+                          <input
+                            type="checkbox"
+                            checked={etapasSeleccionadas.includes(c.id)}
+                            onChange={() => {
+                              setEtapasSeleccionadas(prev => 
+                                prev.includes(c.id) ? prev.filter(item => item !== c.id) : [...prev, c.id]
+                              );
+                            }}
+                            className="w-4 h-4 rounded text-emerald-600 focus:ring-emerald-500"
+                          />
+                          <span className="text-sm font-medium text-surface-600">{c.titulo}</span>
+                        </label>
+                      ))}
+                    </div>
                   </div>
                 </div>
               </div>

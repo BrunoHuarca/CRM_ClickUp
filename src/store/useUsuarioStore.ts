@@ -183,11 +183,13 @@ export const useUsuarioStore = create<UsuarioStore>()(
         const missingMisfolios = !permisosRoles['Admin']?.vistas.includes('misfolios');
         const missingFirma = !permisosRoles['Admin']?.etapasVisibles.includes('Firma');
         const missingCancelado = !permisosRoles['Admin']?.etapasVisibles.includes('Cancelado');
-        const missingMarketingUser = !usuarios.some(u => u.nombre === 'Elena Pardo');
+        const missingCompradores = !permisosRoles['Admin']?.vistas.includes('miscompradores');
+        const missingCartelera = !permisosRoles['Admin']?.vistas.includes('cartelerapropiedades');
+        const missingVendido = !permisosRoles['Admin']?.etapasVisibles.includes('Vendido');
         
-        if (!initialized || usuarios.length < 9 || hasOldRoles || missingMisfolios || missingFirma || missingCancelado || missingMarketingUser) {
+        if (!initialized || usuarios.length < 9 || hasOldRoles || missingMisfolios || missingFirma || missingCancelado || missingCompradores || missingCartelera || missingVendido) {
           set({
-            usuarios: (usuarios.length < 9 || missingMarketingUser) ? usuariosEjemplo : usuarios,
+            usuarios: (usuarios.length < 9) ? usuariosEjemplo : usuarios,
             rolesConfig: DEFAULT_ROLES_CONFIG,
             permisosRoles: DEFAULT_PERMISOS_POR_ROL,
             usuarioActualId: get().usuarioActualId || 'user-001',
