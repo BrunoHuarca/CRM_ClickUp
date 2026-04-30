@@ -29,6 +29,7 @@ const ETAPA_COLORS: Record<EstadoFolio, string> = {
   Marketing: '#8b5cf6',
   Publicado: '#10b981',
   Cancelado: '#64748b',
+  Vendido: '#6366f1',
 };
 
 const SCORE_COLORS: Record<ScoreFolio, string> = {
@@ -76,8 +77,8 @@ const Dashboard: FC = () => {
   }, [folios]);
 
   const totalFolios = folios.length;
-  const foliosActivos = folios.filter((f) => f.estado !== 'Publicado').length;
-  const foliosCerrados = folios.filter((f) => f.estado === 'Publicado').length;
+  const foliosActivos = folios.filter((f) => f.estado !== 'Publicado' && f.estado !== 'Vendido').length;
+  const foliosCerrados = folios.filter((f) => f.estado === 'Publicado' || f.estado === 'Vendido').length;
   const valorTotal = folios.reduce((sum, f) => sum + (f.precioEsperado || 0), 0);
   const costosTotales = folios.reduce(
     (sum, f) => sum + (f.costos || []).reduce((s, c) => s + c.monto, 0),
