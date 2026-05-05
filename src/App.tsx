@@ -33,7 +33,7 @@ const VISTA_CONFIG: Record<string, { label: string; icon: string }> = {
   miscompradores: { label: 'Bandeja de Compradores', icon: '📥' },
   kanbancompradores: { label: 'Kanban Compradores', icon: '📊' },
   agendacompradores: { label: 'Agenda Compradores', icon: '🗓️' },
-  cartelerapropiedades: { label: 'Cartelera de Propiedades', icon: '🏢' },
+  cartelerapropiedades: { label: 'Cartera de Propiedades', icon: '🏢' },
 };
 
 const App: FC = () => {

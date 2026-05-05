@@ -223,7 +223,7 @@ const CrearCompradorModal: FC = () => {
             </div>
 
             <div>
-              <label className="block text-xs font-semibold text-surface-600 mb-1.5 uppercase">Responsable (Comercial)</label>
+              <label className="block text-xs font-semibold text-surface-600 mb-1.5 uppercase">Responsable</label>
               <div className="relative">
                 <select
                   value={responsableId}

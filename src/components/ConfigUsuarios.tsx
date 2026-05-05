@@ -419,7 +419,7 @@ const ConfigUsuarios: FC = () => {
                            v === 'miscompradores' ? '📥 Mis Compradores' :
                            v === 'kanbancompradores' ? '📊 Kanban Compradores' :
                            v === 'agendacompradores' ? '🗓️ Agenda Compradores' :
-                           v === 'cartelerapropiedades' ? '🏢 Cartelera Propiedades' :
+                           v === 'cartelerapropiedades' ? '🏢 Cartera Propiedades' :
                            v.charAt(0).toUpperCase() + v.slice(1)}
                         </span>
                       </label>

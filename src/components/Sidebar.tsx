@@ -12,7 +12,7 @@ const allNavItems: { id: VistaActiva; label: string; icon: string }[] = [
   { id: 'miscompradores', label: 'Bandeja de Entrada', icon: '📥' },
   { id: 'kanbancompradores', label: 'Tablero Kanban', icon: '📊' },
   { id: 'agendacompradores', label: 'Agenda', icon: '🗓️' },
-  { id: 'cartelerapropiedades', label: 'Cartelera', icon: '🏢' },
+  { id: 'cartelerapropiedades', label: 'Cartera', icon: '🏢' },
   { id: 'dashboard', label: 'Dashboard', icon: '◩' },
   { id: 'agentes', label: 'Reporte de Agentes', icon: '◨' },
   { id: 'usuarios', label: 'Usuarios', icon: '⚙' },

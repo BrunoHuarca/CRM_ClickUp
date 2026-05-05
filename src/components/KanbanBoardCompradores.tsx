@@ -22,7 +22,7 @@ const KanbanBoardCompradores: FC = () => {
           onClick={() => useFolioStore.getState().setVistaActiva('cartelerapropiedades')}
           className="flex items-center gap-2 bg-white border border-surface-200 px-4 py-2 rounded-xl text-xs font-bold text-surface-600 hover:bg-surface-50 transition-smooth shadow-sm h-fit"
         >
-          🏢 Ver Cartelera de Propiedades
+          🏢 Ver Cartera de Propiedades
         </button>
       </div>
       <FiltrosGlobales isCompradores={true} />
