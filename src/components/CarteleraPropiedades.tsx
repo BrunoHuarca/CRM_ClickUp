@@ -16,7 +16,7 @@ const CarteleraPropiedades: FC = () => {
     <div className="flex flex-col h-full bg-surface-100 flex-1 overflow-x-auto p-6 animate-fade-in">
       <div className="mb-6 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <h2 className="text-2xl font-bold text-surface-800">Cartelera de Propiedades</h2>
+          <h2 className="text-2xl font-bold text-surface-800">Cartera de Propiedades</h2>
           <p className="text-sm text-surface-500 mt-1">
             Explora las propiedades disponibles con estado Publicado.
           </p>
